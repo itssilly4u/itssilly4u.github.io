@@ -41,7 +41,6 @@
             flex: 1 0 auto;
         }
 
-        /* HARDCODED 3-COLUMN GRID TO FIX THE LAYOUT */
         .setups-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -49,7 +48,6 @@
             margin-bottom: 20px;
         }
 
-        /* Mobile responsiveness */
         @media (max-width: 900px) {
             .setups-grid {
                 grid-template-columns: 1fr;
@@ -62,6 +60,29 @@
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .operator-results {
+            margin-top: auto; 
+            padding-top: 15px; 
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .operator-results span.label {
+            color: var(--text-muted); 
+            font-size: 0.85em; 
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .operator-results span.value {
+            font-size: 1.4em;
+            font-weight: bold;
         }
 
         .global-card {
@@ -170,7 +191,6 @@
             transition: color 0.3s ease;
         }
 
-        /* Tooltip CSS */
         .tooltip-text {
             visibility: hidden;
             width: 220px;
@@ -210,7 +230,6 @@
             opacity: 1;
         }
 
-        /* Watermark Footer */
         footer {
             flex-shrink: 0;
             background-color: var(--panel-bg);
@@ -263,7 +282,7 @@
 <body>
 
 <div class="container">
-    <h1>Mining Loadout Calculator</h1>
+    <h1>MineCalc <span style="font-size: 0.5em; color: var(--text-muted);">| Loadout Calculator</span></h1>
     
     <div class="setups-grid" id="setups-container">
         </div>
@@ -288,12 +307,6 @@
                 <div class="stat-title">Total Min Power</div>
                 <div class="stat-value" id="res-min-power" style="color: var(--text-main);">0</div>
             </div>
-            
-            <div class="stat-box has-tooltip">
-                <div class="stat-title">Inert Filtering Mod</div>
-                <div class="stat-value" id="res-inert">0%</div>
-                <span class="tooltip-text">Inert filtering is stacked multiplicatively. For example, two -40% lasers stack to -64.0%.</span>
-            </div>
             <div class="stat-box">
                 <div class="stat-title">Resistance Mod</div>
                 <div class="stat-value" id="res-resistance">0%</div>
@@ -305,7 +318,7 @@
             <div class="stat-box has-tooltip">
                 <div class="stat-title">Opt. Window Mod</div>
                 <div class="stat-value" id="res-opt-win">0%</div>
-                <span class="tooltip-text">Regardless of how many modifiers you stack, the Optimal Charge Window is hard-capped at 50% of the total Window in-game.</span>
+                <span class="tooltip-text">Regardless of how many modifiers you stack, the Optimal Charge Window is hard-capped at 50% in-game.</span>
             </div>
             <div class="stat-box">
                 <div class="stat-title">Overcharge Rate</div>
@@ -323,7 +336,7 @@
     <div class="footer-content">
         <img src="https://support.robertsspaceindustries.com/hc/article_attachments/360021770294" alt="RSI Logo" class="rsi-logo">
         <span class="made-by">MADE BY ITSS_ILLY <span class="pipe">|</span></span>
-        <a href="https://github.com/itssilly4u/itssilly4u.github.io" class="github-link" target="_blank" rel="noopener">GITHUB</a>
+        <a href="https://github.com/itssilly4u/" class="github-link" target="_blank" rel="noopener">GITHUB</a>
     </div>
 </footer>
 
@@ -409,6 +422,10 @@
                         ${buildOptions(modules)}
                     </select>
                 </div>
+                <div class="operator-results">
+                    <span class="label">Local Inert Filter</span>
+                    <span class="value" id="op-inert-${i}">0%</span>
+                </div>
             `;
             container.appendChild(card);
         }
@@ -446,6 +463,8 @@
 
     function updateColoredStat(elementId, value, isNegativeGood, suffix = '%') {
         const el = document.getElementById(elementId);
+        if (!el) return;
+        
         let formattedValue = value.toFixed(1);
         
         if (value > 0) formattedValue = '+' + formattedValue;
@@ -465,17 +484,24 @@
         let totalMaxPower = 0;
         let totalMinPower = 0;
 
-        let inertMods = [];
         let resistanceMods = [];
         let instabilityMods = [];
         let optWinMods = [];
         let overchargeMods = [];
         let shatterMods = [];
 
-        // 1. Process Operators (Lasers & Modules)
+        function getInertVal(item) {
+            if (!item) return 0;
+            if (item.inert !== undefined) return parseFloat(item.inert);
+            if (item.extraction !== undefined) return -parseFloat(item.extraction);
+            return 0;
+        }
+
         for (let i = 0; i < NUM_SETUPS; i++) {
             const lIndex = document.getElementById(`laser-${i}`).value;
             const laser = lasers[lIndex];
+            
+            let operatorInertMods = [];
 
             if (laser && laser.name !== "None") {
                 let activeEquips = [];
@@ -486,9 +512,9 @@
                     }
                 }
 
-                let laserInertVal = parseFloat(laser.extraction || 0);
+                let laserInertVal = getInertVal(laser);
                 if (!isNaN(laserInertVal) && laserInertVal !== 0) {
-                    inertMods.push(-laserInertVal); 
+                    operatorInertMods.push(laserInertVal); 
                 }
 
                 let powerModifierPercent = 0;
@@ -497,9 +523,9 @@
                     if (eq && eq.name !== "None") {
                         powerModifierPercent += (eq.power || 0);
                         
-                        let eqInertVal = parseFloat(eq.extraction || 0);
+                        let eqInertVal = getInertVal(eq);
                         if (!isNaN(eqInertVal) && eqInertVal !== 0) {
-                            inertMods.push(-eqInertVal);
+                            operatorInertMods.push(eqInertVal);
                         }
 
                         if (eq.resistance) resistanceMods.push(eq.resistance);
@@ -522,19 +548,16 @@
                 if (laser.overcharge) overchargeMods.push(laser.overcharge);
                 if (laser.shatter) shatterMods.push(laser.shatter);
             }
+            
+            // Calculate and display local inert for this operator
+            const finalOpInert = calcMultiplicativeMod(operatorInertMods);
+            updateColoredStat(`op-inert-${i}`, finalOpInert, true, '%');
         }
 
-        // 2. Process Global Gadget
         const globalGadgetSelect = document.getElementById('global-gadget');
         if (globalGadgetSelect) {
             const gadget = gadgets[globalGadgetSelect.value];
             if (gadget && gadget.name !== "None") {
-                
-                let gadInertVal = parseFloat(gadget.extraction || 0);
-                if (!isNaN(gadInertVal) && gadInertVal !== 0) {
-                    inertMods.push(-gadInertVal);
-                }
-
                 if (gadget.resistance) resistanceMods.push(gadget.resistance);
                 if (gadget.instability) instabilityMods.push(gadget.instability);
                 if (gadget.optimalWin) optWinMods.push(gadget.optimalWin);
@@ -543,19 +566,15 @@
             }
         }
 
-        // 3. Multiplicatively Stack All Modifiers
-        const finalInert = calcMultiplicativeMod(inertMods);
         const finalResistance = calcMultiplicativeMod(resistanceMods);
         const finalInstability = calcMultiplicativeMod(instabilityMods);
         const finalOptWin = calcMultiplicativeMod(optWinMods);
         const finalOvercharge = calcMultiplicativeMod(overchargeMods);
         const finalShatter = calcMultiplicativeMod(shatterMods);
 
-        // Update UI
         document.getElementById('res-max-power').innerText = Math.round(totalMaxPower).toLocaleString();
         document.getElementById('res-min-power').innerText = Math.round(totalMinPower).toLocaleString();
-        
-        updateColoredStat('res-inert', finalInert, true, '%');                 
+               
         updateColoredStat('res-resistance', finalResistance, true, '%');       
         updateColoredStat('res-instability', finalInstability, true, '%');     
         updateColoredStat('res-opt-win', finalOptWin, false, '%');                 
