@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mining Loadout Calculator</title>
+    <title>MineCalc | Mining Loadout Calculator</title>
     <style>
         :root {
             /* Grey and Yellow Theme */
@@ -12,7 +12,7 @@
             --text-main: #f0f0f0;
             --text-muted: #a0a0a0;
             --accent: #ffcc00; 
-            --border: #50565f;
+            --border: #254242;
             --good-stat: #4ade80; 
             --bad-stat: #f87171;  
         }
@@ -64,6 +64,113 @@
             flex-direction: column;
         }
 
+        /* --- CUSTOM SELECT DROPDOWN CSS --- */
+        .custom-select {
+            position: relative;
+            width: 100%;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            user-select: none;
+            transition: border-color 0.2s;
+        }
+        .custom-select.open {
+            border-color: var(--accent);
+        }
+        .custom-select.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .cs-display {
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-main);
+        }
+        .cs-display::after {
+            content: '▼';
+            font-size: 0.7em;
+            color: var(--text-muted);
+        }
+        .cs-options {
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 0;
+            right: 0;
+            background-color: var(--bg-color);
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .cs-optgroup {
+            padding: 8px 10px;
+            font-size: 0.8em;
+            color: var(--bg-color);
+            background-color: var(--accent);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .cs-option {
+            padding: 10px 15px;
+            color: var(--text-main);
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .cs-option:hover {
+            background-color: var(--panel-bg);
+            color: var(--accent);
+        }
+        
+        .cs-options::-webkit-scrollbar { width: 8px; }
+        .cs-options::-webkit-scrollbar-track { background: var(--bg-color); }
+        .cs-options::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        .cs-options::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* --- TOOLTIP HOVER CSS --- */
+        .item-preview-tooltip {
+            position: fixed;
+            background-color: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 15px;
+            color: var(--text-main);
+            pointer-events: none; /* Prevents tooltip from blocking the mouse */
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.8);
+            min-width: 240px;
+        }
+        .item-preview-tooltip h4 {
+            margin: 0 0 12px 0;
+            color: var(--accent);
+            font-size: 1.1em;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .preview-stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 0.95em;
+            font-weight: bold;
+        }
+        .preview-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+
         .operator-results {
             margin-top: auto; 
             padding-top: 15px; 
@@ -103,9 +210,7 @@
             gap: 20px;
         }
 
-        .global-card h3 {
-            margin: 0;
-        }
+        .global-card h3 { margin: 0; }
 
         .form-group {
             margin-bottom: 15px;
@@ -123,37 +228,6 @@
             margin-bottom: 5px;
             color: var(--text-muted);
             font-weight: bold;
-        }
-
-        select {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 1em;
-            outline: none;
-            width: 100%;
-        }
-
-        select:focus {
-            border-color: var(--accent);
-        }
-
-        select:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        optgroup {
-            color: var(--accent);
-            font-style: normal;
-            font-weight: bold;
-        }
-        
-        optgroup option {
-            color: var(--text-main);
-            font-weight: normal;
         }
 
         .results-panel {
@@ -197,45 +271,6 @@
             transition: color 0.3s ease;
         }
 
-        .tooltip-text {
-            visibility: hidden;
-            width: 220px;
-            background-color: #1a1a1a;
-            color: #d1d5db;
-            text-align: center;
-            border: 1px solid var(--accent);
-            border-radius: 6px;
-            padding: 10px;
-            position: absolute;
-            z-index: 10;
-            bottom: 110%;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            transition: opacity 0.3s, visibility 0.3s;
-            font-size: 0.85em;
-            font-weight: normal;
-            line-height: 1.4;
-            pointer-events: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
-        }
-
-        .tooltip-text::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -6px;
-            border-width: 6px;
-            border-style: solid;
-            border-color: var(--accent) transparent transparent transparent;
-        }
-
-        .has-tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
-
         footer {
             flex-shrink: 0;
             background-color: var(--panel-bg);
@@ -254,10 +289,7 @@
             gap: 10px;
         }
 
-        .rsi-logo {
-            width: 32px;
-            height: 32px;
-        }
+        .rsi-logo { width: 32px; height: 32px; }
 
         .made-by {
             font-size: 14px;
@@ -266,9 +298,7 @@
             letter-spacing: 1px;
         }
 
-        .pipe {
-            color: var(--text-muted);
-        }
+        .pipe { color: var(--text-muted); }
 
         .github-link {
             font-size: 14px;
@@ -278,10 +308,7 @@
             text-decoration: none;
             transition: color 0.3s ease;
         }
-
-        .github-link:hover {
-            color: #ffda47;
-        }
+        .github-link:hover { color: #ffda47; }
 
         #loading {
             text-align: center;
@@ -290,9 +317,7 @@
             color: var(--accent);
         }
 
-        #app-content {
-            display: none;
-        }
+        #app-content { display: none; }
     </style>
 </head>
 <body>
@@ -309,8 +334,11 @@
         <h3>Global Gadget</h3>
         <div class="form-group">
             <label>Deployed on Rock</label>
-            <select id="global-gadget" onchange="calculate()">
-                </select>
+            <div class="custom-select" id="cs-global-gadget" data-value="0" onclick="toggleCS(this)">
+                <div class="cs-display">None</div>
+                <div class="cs-options">
+                    </div>
+            </div>
         </div>
     </div>
 
@@ -333,10 +361,9 @@
                 <div class="stat-title">Instability Mod</div>
                 <div class="stat-value" id="res-instability">0%</div>
             </div>
-            <div class="stat-box has-tooltip">
+            <div class="stat-box">
                 <div class="stat-title">Opt. Window Mod</div>
                 <div class="stat-value" id="res-opt-win">0%</div>
-                <span class="tooltip-text">Regardless of how many modifiers you stack, the Optimal Charge Window is hard-capped at 50% in-game.</span>
             </div>
             <div class="stat-box">
                 <div class="stat-title">Opt. Charge Rate</div>
@@ -350,10 +377,9 @@
                 <div class="stat-title">Shatter Damage</div>
                 <div class="stat-value" id="res-shatter">0%</div>
             </div>
-            <div class="stat-box has-tooltip">
+            <div class="stat-box">
                 <div class="stat-title">Cluster Modifier</div>
                 <div class="stat-value" id="res-cluster">0%</div>
-                <span class="tooltip-text">Affects the final size of the broken chunks. Positive values create larger, more concentrated clusters.</span>
             </div>
         </div>
     </div>
@@ -370,17 +396,97 @@
 <script>
     const NUM_SETUPS = 3; 
 
-    // Empty arrays to be filled by the UEX JSON files
     let lasers = [];
     let modules = [];
     let gadgets = [];
 
+    // Setup Global Hover Tooltip for Previewing
+    const tooltipEl = document.createElement('div');
+    tooltipEl.className = 'item-preview-tooltip';
+    document.body.appendChild(tooltipEl);
+
+    document.addEventListener('mousemove', (e) => {
+        if (tooltipEl.style.display === 'block') {
+            let x = e.clientX + 15;
+            let y = e.clientY + 15;
+            const rect = tooltipEl.getBoundingClientRect();
+            
+            // Boundary checks to keep it on screen
+            if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 15;
+            if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 15;
+            
+            tooltipEl.style.left = x + 'px';
+            tooltipEl.style.top = y + 'px';
+        }
+    });
+
+    window.showPreview = function(index, type) {
+        let item = type === 'laser' ? lasers[index] : (type === 'module' ? modules[index] : gadgets[index]);
+        tooltipEl.innerHTML = `<h4>${item.name}</h4>${formatStatPreview(item, type)}`;
+        tooltipEl.style.display = 'block';
+    }
+
+    window.hidePreview = function() {
+        tooltipEl.style.display = 'none';
+    }
+
+    // Logic to only show non-zero modifiers
+    function formatStatPreview(item, type) {
+        if (!item || item.name === "None") return `<div style="color:var(--text-muted); font-style:italic;">No stat modifiers applied.</div>`;
+        let html = '';
+        
+        const addStat = (label, val, suffix, invertGoodBad = false, isBaseStat = false) => {
+            if (val === 0 || val === "0" || val === "" || val === undefined) return;
+            let displayVal = parseFloat(val).toFixed(1).replace('.0', '');
+            if (!isBaseStat && val > 0) displayVal = '+' + displayVal;
+            displayVal += suffix;
+            
+            let colorClass = '';
+            if (!isBaseStat) {
+                let isPositive = val > 0;
+                let isGood = invertGoodBad ? !isPositive : isPositive;
+                colorClass = isGood ? 'style="color: var(--good-stat);"' : 'style="color: var(--bad-stat);"';
+            }
+            
+            html += `<div class="preview-stat-row">
+                        <span class="preview-label">${label}</span>
+                        <span ${colorClass}>${displayVal}</span>
+                     </div>`;
+        };
+
+        // Format specific logic for items
+        if (type === 'laser') {
+            if (item.powerMax > 0) html += `<div class="preview-stat-row"><span class="preview-label">Power</span><span>${Math.round(item.powerMin)} - ${Math.round(item.powerMax)}</span></div>`;
+            addStat('Extraction', item.extraction, '', false, true);
+            addStat('Opt. Range', item.optRange, 'm', false, true);
+            addStat('Max Range', item.maxRange, 'm', false, true);
+            addStat('Module Slots', item.slots, '', false, true);
+            html += `<hr style="border-color: var(--border); margin: 10px 0;">`;
+        } else {
+            addStat('Power Mod', item.power, '%');
+            addStat('Extraction Mod', item.extraction, '%');
+        }
+
+        // Shared Modifiers
+        addStat('Inert Filter', item.inert, '%', true); // Neg is good
+        addStat('Resistance', item.resistance, '%', true); // Neg is good
+        addStat('Instability', item.instability, '%', true); // Neg is good
+        addStat('Opt. Window', item.optimalWin, '%'); // Pos is good
+        addStat('Opt. Charge Rate', item.optCharge, '%'); // Pos is good
+        addStat('Overcharge Rate', item.overcharge, '%', true); // Neg is good
+        addStat('Shatter Damage', item.shatter, '%', true); // Neg is good
+        addStat('Cluster Modifier', item.cluster, '%'); // Pos is good
+
+        if (html === '' || html === `<hr style="border-color: var(--border); margin: 10px 0;">`) {
+             return `<div style="color:var(--text-muted); font-style:italic;">No additional modifiers</div>`;
+        }
+        return html;
+    }
+
     // Helper to safely parse strings to floats
     function safeFloat(val, def = 0) {
         if (val === "" || val === null || val === undefined) return def;
-        if (typeof val === 'string') {
-            val = val.replace('%', '').replace(',', '');
-        }
+        if (typeof val === 'string') val = val.replace('%', '').replace(',', '');
         let parsed = parseFloat(val);
         return isNaN(parsed) ? def : parsed;
     }
@@ -398,48 +504,32 @@
             const rawModules = await modulesRes.json();
             const rawGadgets = await gadgetsRes.json();
 
-            // 1. Process Lasers
             lasers.push({ name: "None", size: 0, slots: 0, powerMin: 0, powerMax: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0, cluster: 0, optRange: 0, maxRange: 0 });
             rawLasers.forEach(l => {
                 let name = `${l['Item']} (S${l['Size'] || '?'})`;
                 let pm = l['Mining Laser Power'] || '';
                 let pmin = 0, pmax = 0;
                 
-                // UEX writes power as "189-1890", we split it into min and max
                 if (typeof pm === 'string' && pm.includes('-')) {
                     pmin = safeFloat(pm.split('-')[0]);
                     pmax = safeFloat(pm.split('-')[1]);
                 } else {
                     pmax = safeFloat(pm);
-                    let tmin = safeFloat(l['Throttle min']);
-                    pmin = pmax * (tmin / 100);
+                    pmin = pmax * (safeFloat(l['Throttle min']) / 100);
                 }
 
-                // If Extraction Power is empty, check Throughput
                 let ext = safeFloat(l['Extraction Laser Power']);
                 if (ext === 0) ext = safeFloat(l['Extraction Throughput']);
 
                 lasers.push({ 
-                    name: name, 
-                    size: safeFloat(l['Size']), 
-                    slots: safeFloat(l['Module Slots']), 
-                    powerMin: pmin, 
-                    powerMax: pmax, 
-                    extraction: ext, 
-                    inert: safeFloat(l['Inert Material Level']), 
-                    resistance: safeFloat(l['Resistance']), 
-                    instability: safeFloat(l['Laser Instability']) || safeFloat(l['Instability']), 
-                    optimalWin: safeFloat(l['Optimal Charge Window Size']), 
-                    optCharge: safeFloat(l['Optimal Charge Window Rate']), 
-                    overcharge: safeFloat(l['Catastrophic Charge Rate']), 
-                    shatter: safeFloat(l['Shatter Damage']),
-                    cluster: 0,
-                    optRange: safeFloat(l['Optimal Range']),   // Added
-                    maxRange: safeFloat(l['Maximum Range'])    // Added
+                    name: name, size: safeFloat(l['Size']), slots: safeFloat(l['Module Slots']), powerMin: pmin, powerMax: pmax, 
+                    extraction: ext, inert: safeFloat(l['Inert Material Level']), resistance: safeFloat(l['Resistance']), 
+                    instability: safeFloat(l['Laser Instability']) || safeFloat(l['Instability']), optimalWin: safeFloat(l['Optimal Charge Window Size']), 
+                    optCharge: safeFloat(l['Optimal Charge Window Rate']), overcharge: safeFloat(l['Catastrophic Charge Rate']), 
+                    shatter: safeFloat(l['Shatter Damage']), cluster: 0, optRange: safeFloat(l['Optimal Range']), maxRange: safeFloat(l['Maximum Range'])    
                 });
             });
 
-            // 2. Process Modules
             modules.push({ name: "None", power: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0, cluster: 0 });
             rawModules.forEach(m => {
                 let rawP = safeFloat(m['Mining Laser Power'], 100);
@@ -448,35 +538,20 @@
                 if (rawE === 0) rawE = 100;
 
                 modules.push({ 
-                    name: m['Item'], 
-                    power: rawP - 100, 
-                    extraction: rawE - 100, 
-                    inert: safeFloat(m['Inert Material Level']), 
-                    resistance: safeFloat(m['Resistance']), 
-                    instability: safeFloat(m['Laser Instability']), 
-                    optimalWin: safeFloat(m['Optimal Charge Window Size']), 
-                    optCharge: safeFloat(m['Optimal Charge Rate']), 
-                    overcharge: safeFloat(m['Catastrophic Charge Rate']), 
-                    shatter: safeFloat(m['Shatter Damage']),
-                    cluster: 0
+                    name: m['Item'], power: rawP - 100, extraction: rawE - 100, inert: safeFloat(m['Inert Material Level']), 
+                    resistance: safeFloat(m['Resistance']), instability: safeFloat(m['Laser Instability']), 
+                    optimalWin: safeFloat(m['Optimal Charge Window Size']), optCharge: safeFloat(m['Optimal Charge Rate']), 
+                    overcharge: safeFloat(m['Catastrophic Charge Rate']), shatter: safeFloat(m['Shatter Damage']), cluster: 0
                 });
             });
 
-            // 3. Process Gadgets
             gadgets.push({ name: "None", power: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0, cluster: 0 });
             rawGadgets.forEach(g => {
                 gadgets.push({ 
-                    name: g['Item'], 
-                    power: 0, 
-                    extraction: 0, 
-                    inert: safeFloat(g['Inert Material Level']), 
-                    resistance: safeFloat(g['Resistance']), 
-                    instability: safeFloat(g['Laser Instability']) || safeFloat(g['Instability']), 
-                    optimalWin: safeFloat(g['Optimal Charge Window Size']), 
-                    optCharge: safeFloat(g['Optimal Charge Window Rate']), 
-                    overcharge: safeFloat(g['Catastrophic Charge Rate']), 
-                    shatter: safeFloat(g['Shatter Damage']),
-                    cluster: safeFloat(g['Cluster Modifier']) 
+                    name: g['Item'], power: 0, extraction: 0, inert: safeFloat(g['Inert Material Level']), resistance: safeFloat(g['Resistance']), 
+                    instability: safeFloat(g['Laser Instability']) || safeFloat(g['Instability']), optimalWin: safeFloat(g['Optimal Charge Window Size']), 
+                    optCharge: safeFloat(g['Optimal Charge Window Rate']), overcharge: safeFloat(g['Catastrophic Charge Rate']), 
+                    shatter: safeFloat(g['Shatter Damage']), cluster: safeFloat(g['Cluster Modifier']) 
                 });
             });
 
@@ -491,51 +566,90 @@
         }
     }
 
+    // Custom Dropdown Builder
+    function buildLaserCSOptions() {
+        let html = '';
+        let s2 = [], s1 = [], s0 = [], others = [];
+        
+        lasers.forEach((item, index) => {
+            if (item.name === "None") return;
+            const opt = `<div class="cs-option" data-val="${index}" onmouseenter="showPreview(${index}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${item.name}</div>`;
+            if (item.name.includes("(S2)")) s2.push(opt);
+            else if (item.name.includes("(S1)")) s1.push(opt);
+            else if (item.name.includes("(S0)")) s0.push(opt);
+            else others.push(opt);
+        });
+        
+        html += `<div class="cs-option" data-val="0" onmouseenter="showPreview(0, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">None</div>`;
+        if (s2.length > 0) html += `<div class="cs-optgroup">Size 2 Lasers</div>${s2.join('')}`;
+        if (s1.length > 0) html += `<div class="cs-optgroup">Size 1 Lasers</div>${s1.join('')}`;
+        if (s0.length > 0) html += `<div class="cs-optgroup">Size 0 Lasers</div>${s0.join('')}`;
+        if (others.length > 0) html += `<div class="cs-optgroup">Uncategorized</div>${others.join('')}`;
+        
+        return html;
+    }
 
-    function buildOptions(dataArray) {
+    function buildModuleCSOptions(typeStr) {
+        let dataArray = typeStr === 'module' ? modules : gadgets;
         const mapped = dataArray.map((item, index) => ({ item, index }));
         mapped.sort((a, b) => {
             if (a.item.name === "None") return -1;
             if (b.item.name === "None") return 1;
             return a.item.name.localeCompare(b.item.name);
         });
-        return mapped.map(obj => `<option value="${obj.index}">${obj.item.name}</option>`).join('');
+        
+        return mapped.map(obj => `<div class="cs-option" data-val="${obj.index}" onmouseenter="showPreview(${obj.index}, '${typeStr}')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, '${typeStr}')">${obj.item.name}</div>`).join('');
     }
 
-    function buildLaserOptions(dataArray) {
-        let noneOpt = '';
-        let s2 = [], s1 = [], s0 = [], others = [];
-
-        dataArray.forEach((item, index) => {
-            const optObj = { html: `<option value="${index}">${item.name}</option>`, name: item.name };
-            if (item.name === "None") {
-                noneOpt = optObj.html;
-            } else if (item.name.includes("(S2)")) {
-                s2.push(optObj);
-            } else if (item.name.includes("(S1)")) {
-                s1.push(optObj);
-            } else if (item.name.includes("(S0)")) {
-                s0.push(optObj);
-            } else {
-                others.push(optObj);
-            }
+    function toggleCS(container) {
+        if (container.classList.contains('disabled')) return;
+        const wasOpen = container.classList.contains('open');
+        
+        // Close all others
+        document.querySelectorAll('.custom-select').forEach(el => {
+            el.classList.remove('open');
+            el.querySelector('.cs-options').style.display = 'none';
         });
         
-        s2.sort((a, b) => a.name.localeCompare(b.name));
-        s1.sort((a, b) => a.name.localeCompare(b.name));
-        s0.sort((a, b) => a.name.localeCompare(b.name));
-        others.sort((a, b) => a.name.localeCompare(b.name));
-
-        let html = noneOpt;
-        if (s2.length > 0) html += `<optgroup label="Size 2 Lasers">${s2.map(o => o.html).join('')}</optgroup>`;
-        if (s1.length > 0) html += `<optgroup label="Size 1 Lasers">${s1.map(o => o.html).join('')}</optgroup>`;
-        if (s0.length > 0) html += `<optgroup label="Size 0 Lasers">${s0.map(o => o.html).join('')}</optgroup>`;
-        if (others.length > 0) html += `<optgroup label="Uncategorized">${others.map(o => o.html).join('')}</optgroup>`;
-        
-        return html;
+        if (!wasOpen) {
+            container.classList.add('open');
+            container.querySelector('.cs-options').style.display = 'block';
+        }
     }
 
+    // Handles the actual selection event
+    function selectCSOption(e, optionEl, type) {
+        e.stopPropagation();
+        const container = optionEl.closest('.custom-select');
+        container.dataset.value = optionEl.dataset.val;
+        container.querySelector('.cs-display').innerText = optionEl.innerText;
+        container.querySelector('.cs-options').style.display = 'none';
+        container.classList.remove('open');
+        hidePreview();
+
+        if (type === 'laser') {
+            const match = container.id.match(/cs-laser-(\d+)/);
+            if (match) handleLaserChange(match[1]);
+        } else {
+            calculate();
+        }
+    }
+
+    // Close Dropdowns if you click anywhere else on the page
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.custom-select')) {
+            document.querySelectorAll('.custom-select.open').forEach(el => {
+                el.classList.remove('open');
+                el.querySelector('.cs-options').style.display = 'none';
+            });
+        }
+    });
+
     function initUI() {
+        const laserHtml = buildLaserCSOptions();
+        const moduleHtml = buildModuleCSOptions('module');
+        const gadgetHtml = buildModuleCSOptions('gadget');
+
         const container = document.getElementById('setups-container');
         for (let i = 0; i < NUM_SETUPS; i++) {
             const card = document.createElement('div');
@@ -545,27 +659,31 @@
                 <h3>Operator ${i + 1}</h3>
                 <div class="form-group">
                     <label>Laser Head</label>
-                    <select id="laser-${i}" onchange="handleLaserChange(${i})">
-                        ${buildLaserOptions(lasers)}
-                    </select>
+                    <div class="custom-select" id="cs-laser-${i}" data-value="0" onclick="toggleCS(this)">
+                        <div class="cs-display">None</div>
+                        <div class="cs-options">${laserHtml}</div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Module 1</label>
-                    <select id="mod1-${i}" onchange="calculate()" disabled>
-                        ${buildOptions(modules)}
-                    </select>
+                    <div class="custom-select disabled" id="cs-mod1-${i}" data-value="0" onclick="toggleCS(this)">
+                        <div class="cs-display">None</div>
+                        <div class="cs-options">${moduleHtml}</div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Module 2</label>
-                    <select id="mod2-${i}" onchange="calculate()" disabled>
-                        ${buildOptions(modules)}
-                    </select>
+                    <div class="custom-select disabled" id="cs-mod2-${i}" data-value="0" onclick="toggleCS(this)">
+                        <div class="cs-display">None</div>
+                        <div class="cs-options">${moduleHtml}</div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Module 3</label>
-                    <select id="mod3-${i}" onchange="calculate()" disabled>
-                        ${buildOptions(modules)}
-                    </select>
+                    <div class="custom-select disabled" id="cs-mod3-${i}" data-value="0" onclick="toggleCS(this)">
+                        <div class="cs-display">None</div>
+                        <div class="cs-options">${moduleHtml}</div>
+                    </div>
                 </div>
                 <div class="operator-results">
                     <div class="local-stat">
@@ -589,23 +707,25 @@
             container.appendChild(card);
         }
 
-        document.getElementById('global-gadget').innerHTML = buildOptions(gadgets);
+        const globalGadgetEl = document.getElementById('cs-global-gadget');
+        if(globalGadgetEl) globalGadgetEl.querySelector('.cs-options').innerHTML = gadgetHtml;
+
         calculate(); 
     }
 
     function handleLaserChange(setupIndex) {
-        const laserSelect = document.getElementById(`laser-${setupIndex}`);
-        const laserIndex = laserSelect.value;
+        const laserIndex = parseInt(document.getElementById(`cs-laser-${setupIndex}`).dataset.value);
         const selectedLaser = lasers[laserIndex];
         
         for (let m = 1; m <= 3; m++) {
-            const modSelect = document.getElementById(`mod${m}-${setupIndex}`);
+            const modSelect = document.getElementById(`cs-mod${m}-${setupIndex}`);
             const slots = selectedLaser.slots || 0;
             if (m <= slots) {
-                modSelect.disabled = false;
+                modSelect.classList.remove('disabled');
             } else {
-                modSelect.value = 0; 
-                modSelect.disabled = true;
+                modSelect.dataset.value = 0; 
+                modSelect.querySelector('.cs-display').innerText = 'None';
+                modSelect.classList.add('disabled');
             }
         }
         calculate();
@@ -614,9 +734,7 @@
     function calcMultiplicativeMod(valuesArray) {
         if (valuesArray.length === 0) return 0;
         let product = 1;
-        valuesArray.forEach(val => {
-            product *= (1 + (val / 100));
-        });
+        valuesArray.forEach(val => { product *= (1 + (val / 100)); });
         return ((product - 1) * 100);
     }
 
@@ -650,7 +768,7 @@
         let clusterMods = [];
 
         for (let i = 0; i < NUM_SETUPS; i++) {
-            const lIndex = document.getElementById(`laser-${i}`).value;
+            const lIndex = parseInt(document.getElementById(`cs-laser-${i}`).dataset.value);
             const laser = lasers[lIndex];
             
             let operatorInertMods = [];
@@ -660,9 +778,9 @@
             if (laser && laser.name !== "None") {
                 let activeEquips = [];
                 for (let m = 1; m <= 3; m++) {
-                    const modSelect = document.getElementById(`mod${m}-${i}`);
-                    if (!modSelect.disabled) {
-                        activeEquips.push(modules[modSelect.value]);
+                    const modSelect = document.getElementById(`cs-mod${m}-${i}`);
+                    if (!modSelect.classList.contains('disabled')) {
+                        activeEquips.push(modules[parseInt(modSelect.dataset.value)]);
                     }
                 }
 
@@ -698,10 +816,8 @@
                 if (laser.overcharge) overchargeMods.push(laser.overcharge);
                 if (laser.shatter) shatterMods.push(laser.shatter);
 
-                // Local Extraction Update
                 document.getElementById(`op-ext-${i}`).innerText = actualExtraction.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
                 
-                // Update Local Ranges
                 let optRange = laser.optRange || 0;
                 let maxRange = laser.maxRange || 0;
                 document.getElementById(`op-optrange-${i}`).innerText = optRange > 0 ? optRange + 'm' : '0m';
@@ -717,9 +833,9 @@
             updateColoredStat(`op-inert-${i}`, finalOpInert, true, '%');
         }
 
-        const globalGadgetSelect = document.getElementById('global-gadget');
+        const globalGadgetSelect = document.getElementById('cs-global-gadget');
         if (globalGadgetSelect) {
-            const gadget = gadgets[globalGadgetSelect.value];
+            const gadget = gadgets[parseInt(globalGadgetSelect.dataset.value)];
             if (gadget && gadget.name !== "None") {
                 if (gadget.resistance) resistanceMods.push(gadget.resistance);
                 if (gadget.instability) instabilityMods.push(gadget.instability);
@@ -751,7 +867,6 @@
         updateColoredStat('res-cluster', finalCluster, false, '%');             
     }
 
-    // Start by loading the data, not by generating UI directly
     window.onload = loadData;
 </script>
 
