@@ -68,8 +68,9 @@
             margin-top: auto; 
             padding-top: 15px; 
             border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px 10px;
             align-items: center;
         }
 
@@ -398,7 +399,7 @@
             const rawGadgets = await gadgetsRes.json();
 
             // 1. Process Lasers
-            lasers.push({ name: "None", size: 0, slots: 0, powerMin: 0, powerMax: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0, cluster: 0 });
+            lasers.push({ name: "None", size: 0, slots: 0, powerMin: 0, powerMax: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0, cluster: 0, optRange: 0, maxRange: 0 });
             rawLasers.forEach(l => {
                 let name = `${l['Item']} (S${l['Size'] || '?'})`;
                 let pm = l['Mining Laser Power'] || '';
@@ -432,7 +433,9 @@
                     optCharge: safeFloat(l['Optimal Charge Window Rate']), 
                     overcharge: safeFloat(l['Catastrophic Charge Rate']), 
                     shatter: safeFloat(l['Shatter Damage']),
-                    cluster: 0 // Lasers don't impact cluster mod
+                    cluster: 0,
+                    optRange: safeFloat(l['Optimal Range']),   // Added
+                    maxRange: safeFloat(l['Maximum Range'])    // Added
                 });
             });
 
@@ -455,7 +458,7 @@
                     optCharge: safeFloat(m['Optimal Charge Rate']), 
                     overcharge: safeFloat(m['Catastrophic Charge Rate']), 
                     shatter: safeFloat(m['Shatter Damage']),
-                    cluster: 0 // Modules don't impact cluster mod
+                    cluster: 0
                 });
             });
 
@@ -473,7 +476,7 @@
                     optCharge: safeFloat(g['Optimal Charge Window Rate']), 
                     overcharge: safeFloat(g['Catastrophic Charge Rate']), 
                     shatter: safeFloat(g['Shatter Damage']),
-                    cluster: safeFloat(g['Cluster Modifier']) // Added from Gadget Data
+                    cluster: safeFloat(g['Cluster Modifier']) 
                 });
             });
 
@@ -566,12 +569,20 @@
                 </div>
                 <div class="operator-results">
                     <div class="local-stat">
-                        <span class="label">Local Ext. Power</span>
+                        <span class="label">Local Ext.</span>
                         <span class="value" id="op-ext-${i}">0.0</span>
                     </div>
                     <div class="local-stat">
                         <span class="label">Local Inert</span>
                         <span class="value" id="op-inert-${i}">0%</span>
+                    </div>
+                    <div class="local-stat">
+                        <span class="label">Opt. Range</span>
+                        <span class="value" id="op-optrange-${i}" style="color: var(--text-main);">0m</span>
+                    </div>
+                    <div class="local-stat">
+                        <span class="label">Max Range</span>
+                        <span class="value" id="op-maxrange-${i}" style="color: var(--text-main);">0m</span>
                     </div>
                 </div>
             `;
@@ -687,9 +698,19 @@
                 if (laser.overcharge) overchargeMods.push(laser.overcharge);
                 if (laser.shatter) shatterMods.push(laser.shatter);
 
+                // Local Extraction Update
                 document.getElementById(`op-ext-${i}`).innerText = actualExtraction.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
+                
+                // Update Local Ranges
+                let optRange = laser.optRange || 0;
+                let maxRange = laser.maxRange || 0;
+                document.getElementById(`op-optrange-${i}`).innerText = optRange > 0 ? optRange + 'm' : '0m';
+                document.getElementById(`op-maxrange-${i}`).innerText = maxRange > 0 ? maxRange + 'm' : '0m';
+
             } else {
                 document.getElementById(`op-ext-${i}`).innerText = '0.0';
+                document.getElementById(`op-optrange-${i}`).innerText = '0m';
+                document.getElementById(`op-maxrange-${i}`).innerText = '0m';
             }
             
             const finalOpInert = calcMultiplicativeMod(operatorInertMods);
