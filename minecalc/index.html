@@ -289,6 +289,46 @@
             gap: 10px;
         }
 
+        .tooltip-text {
+            visibility: hidden;
+            width: 220px;
+            background-color: #1a1a1a;
+            color: #d1d5db;
+            text-align: center;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 10;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+            font-size: 0.85em;
+            font-weight: normal;
+            line-height: 1.4;
+            pointer-events: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -6px;
+            border-width: 6px;
+            border-style: solid;
+            border-color: var(--accent) transparent transparent transparent;
+        }
+
+        .has-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+
         .rsi-logo { width: 32px; height: 32px; }
 
         .made-by {
@@ -361,9 +401,10 @@
                 <div class="stat-title">Instability Mod</div>
                 <div class="stat-value" id="res-instability">0%</div>
             </div>
-            <div class="stat-box">
+            <div class="stat-box has-tooltip">
                 <div class="stat-title">Opt. Window Mod</div>
                 <div class="stat-value" id="res-opt-win">0%</div>
+                <span class="tooltip-text">Regardless of how many modifiers you stack, the Optimal Charge Window is hard-capped at 50% of the total window in-game.</span>
             </div>
             <div class="stat-box">
                 <div class="stat-title">Opt. Charge Rate</div>
