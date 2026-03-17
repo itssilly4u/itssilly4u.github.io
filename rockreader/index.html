@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Reader</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1c22;
+            color: #d1d4dc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #252830;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            position: relative; 
+        }
+
+        h1 { color: #f2cc0c; font-size: 1.5rem; margin-bottom: 20px; text-transform: uppercase;}
+        
+        .input-group { margin-bottom: 25px; }
+
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #a1a6b0;}
+        
+        input[type="number"] {
+            width: 80%;
+            padding: 12px;
+            font-size: 1.2rem;
+            border: 2px solid #3f4551;
+            border-radius: 6px;
+            background-color: #1a1c22;
+            color: #fff;
+            text-align: center;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #1a1c22;
+            background-color: #f2cc0c;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover { background-color: #e6b800; }
+
+        #results { margin-top: 20px; text-align: left;}
+
+        #results ul {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 15px;
+        }
+
+        #results li {
+            background-color: #2d313a;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #results .ore-name { color: #fff; font-weight: bold;}
+        #results .ore-count { color: #f2cc0c;}
+
+        .watermark {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #3f4551;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            color: #6a6f7a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .watermark img {
+            height: 20px;
+            width: auto;
+            opacity: 0.6;
+        }
+
+        .watermark a {
+            color: #f2cc0c;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .watermark a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Rock Reader (4.7)</h1>
+    
+    <div class="input-group">
+        <label for="signatureInput">Enter Remote Cluster Signature:</label>
+        <input type="number" id="signatureInput" placeholder="Example: 9510">
+    </div>
+
+    <button onclick="findOres()">Check Matches</button>
+
+    <div id="results"></div>
+
+    <footer class="watermark">
+        <img src="https://support.robertsspaceindustries.com/hc/article_attachments/360021770294" alt="RSI Logo">
+        <span>Made by itss_illy</span>
+        <span>|</span>
+        <a href="https://github.com/itssilly4u/itssilly4u.github.io/rockreader" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </footer>
+</div>
+
+<script>
+    const ores = [
+        { name: "Debris", signature: 2000 },
+        { name: "Ground Vehicle Deposits", signature: 3000 },
+        { name: "Quantainium", signature: 3170 },
+        { name: "Stileron", signature: 3185 },
+        { name: "Savrilium", signature: 3200 },
+        { name: "Ouratite", signature: 3370 },
+        { name: "Riccite", signature: 3385 },
+        { name: "Lindinium", signature: 3400 },
+        { name: "Beryl", signature: 3540 },
+        { name: "Taranite", signature: 3555 },
+        { name: "Borase", signature: 3570 },
+        { name: "Gold", signature: 3585 },
+        { name: "Bexalite", signature: 3600 },
+        { name: "Laranite", signature: 3825 },
+        { name: "Aslarite", signature: 3840 },
+        { name: "Titanium", signature: 3855 },
+        { name: "Tungsten", signature: 3870 },
+        { name: "Agricium", signature: 3885 },
+        { name: "Torite", signature: 3900 },
+        { name: "FPS Mineables", signature: 4000 },
+        { name: "Hephestanite", signature: 4180 },
+        { name: "Tin", signature: 4195 },
+        { name: "Quartz", signature: 4210 },
+        { name: "Corundum", signature: 4225 },
+        { name: "Copper", signature: 4240 },
+        { name: "Silicon", signature: 4255 },
+        { name: "Iron", signature: 4270 },
+        { name: "Aluminium", signature: 4285 },
+        { name: "Ice", signature: 4300 }
+    ];
+
+    function findOres() {
+        const inputSignatureStr = document.getElementById('signatureInput').value;
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = "";
+
+        const signature = parseInt(inputSignatureStr);
+        if (isNaN(signature) || signature <= 0) {
+            resultsDiv.innerHTML = "<p style='color:#ff6b6b; text-align:center;'>❌ Please enter a valid number.</p>";
+            return;
+        }
+
+        let matches = [];
+        for (const ore of ores) {
+            if (signature % ore.signature === 0) {
+                const count = signature / ore.signature;
+                matches.push({
+                    name: ore.name,
+                    count: count
+                });
+            }
+        }
+
+        if (matches.length > 0) {
+            resultsDiv.innerHTML = "<h3>Possible Matches:</h3><ul>" +
+                matches.map(m => `<li><span class='ore-name'>${m.name}</span> <span class='ore-count'>(${m.count}x node cluster)</span></li>`).join('') +
+                "</ul>";
+        } else {
+            resultsDiv.innerHTML = "<h3 style='color:#a1a6b0;'>No perfect matches found.</h3><p style='color:#a1a6b0; font-size:0.9rem;'>The initial signature may not be perfectly precise, or it's a mixed cluster.</p>";
+        }
+    }
+
+    document.getElementById('signatureInput').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            findOres();
+        }
+    });
+</script>
+
+</body>
+</html>
