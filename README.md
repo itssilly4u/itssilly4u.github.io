@@ -23,7 +23,6 @@ MineCalc is a comprehensive, multi-crew mining loadout calculator. Whether you a
 * **Multi-Crew Support:** Calculate the combined mining power for up to 3 operators simultaneously.
 * **True-to-Game Math:** Accurately separates stats into Additive pools (Raw Power, Extraction Rates) and Multiplicative stacks (Inert Filtering, Rock Resistance, Instability) exactly how Star Citizen calculates them.
 * **Global Gadgets:** Apply a single mining gadget to your target rock to instantly see the fleet-wide debuffs and buffs.
-* **Smart Logic:** Automatically detects laser sizes (S1 vs S2) to apply hidden base stats, categorizes equipment alphabetically, and factors in hard-caps like the 50% Optimal Charge Window limit.
 * **Dynamic UI:** Features a sleek, dark-themed interface with color-coded stats (green for good, red for bad) and interactive tooltips.
 
 ### Features:
