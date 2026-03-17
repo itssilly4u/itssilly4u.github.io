@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mining Loadout Calculator</title>
+    <style>
+        :root {
+            /* Grey and Yellow Theme */
+            --bg-color: #242424;
+            --panel-bg: #333333;
+            --text-main: #f0f0f0;
+            --text-muted: #a0a0a0;
+            --accent: #ffcc00; 
+            --border: #444444;
+            --good-stat: #4ade80; 
+            --bad-stat: #f87171;  
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1, h2, h3 { 
+            color: var(--accent); 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .setups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .setup-card {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .global-card {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .global-card h3 {
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .global-card .form-group {
+            margin-bottom: 0;
+        }
+
+        label {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        select {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 1em;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: var(--accent);
+        }
+
+        select:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        optgroup {
+            color: var(--accent);
+            font-style: normal;
+            font-weight: bold;
+        }
+        
+        optgroup option {
+            color: var(--text-main);
+            font-weight: normal;
+        }
+
+        .results-panel {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-box {
+            background-color: var(--bg-color);
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--accent);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative; /* Required for absolute positioning of tooltips */
+        }
+
+        .stat-title {
+            font-size: 0.85em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .stat-value {
+            font-size: 1.6em;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        /* Tooltip CSS */
+        .tooltip-text {
+            visibility: hidden;
+            width: 220px;
+            background-color: #1a1a1a;
+            color: #d1d5db;
+            text-align: center;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 10;
+            bottom: 110%; /* Position above the stat box */
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+            font-size: 0.85em;
+            font-weight: normal;
+            line-height: 1.4;
+            pointer-events: none; /* Prevents tooltip from interfering with mouse */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+
+        /* Tooltip Arrow */
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -6px;
+            border-width: 6px;
+            border-style: solid;
+            border-color: var(--accent) transparent transparent transparent;
+        }
+
+        .has-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Mining Loadout Calculator</h1>
+    
+    <div class="setups-grid" id="setups-container">
+        </div>
+
+    <div class="global-card">
+        <h3>Global Gadget</h3>
+        <div class="form-group">
+            <label>Deployed on Rock</label>
+            <select id="global-gadget" onchange="calculate()">
+                </select>
+        </div>
+    </div>
+
+    <div class="results-panel">
+        <h2>Combined Fleet Output</h2>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-title">Total Max Power</div>
+                <div class="stat-value" id="res-max-power" style="color: var(--accent);">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title">Total Min Power</div>
+                <div class="stat-value" id="res-min-power" style="color: var(--text-main);">0</div>
+            </div>
+            
+            <div class="stat-box has-tooltip">
+                <div class="stat-title">Inert Filtering Mod</div>
+                <div class="stat-value" id="res-inert">0%</div>
+                <span class="tooltip-text">Inert filtering is stacked multiplicatively. For example, two -40% lasers stack to -64.0%.</span>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title">Resistance Mod</div>
+                <div class="stat-value" id="res-resistance">0%</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title">Instability Mod</div>
+                <div class="stat-value" id="res-instability">0%</div>
+            </div>
+            <div class="stat-box has-tooltip">
+                <div class="stat-title">Opt. Window Mod</div>
+                <div class="stat-value" id="res-opt-win">0%</div>
+                <span class="tooltip-text">NOTE: This can never be greater than 50% of the total window.</span>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title">Overcharge Rate</div>
+                <div class="stat-value" id="res-overcharge">0%</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-title">Shatter Damage</div>
+                <div class="stat-value" id="res-shatter">0%</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="data.js"></script>
+
+<script>
+    const NUM_SETUPS = 3; 
+
+    function buildOptions(dataArray) {
+        const mapped = dataArray.map((item, index) => ({ item, index }));
+        
+        mapped.sort((a, b) => {
+            if (a.item.name === "None") return -1;
+            if (b.item.name === "None") return 1;
+            return a.item.name.localeCompare(b.item.name);
+        });
+
+        return mapped.map(obj => `<option value="${obj.index}">${obj.item.name}</option>`).join('');
+    }
+
+    function buildLaserOptions(dataArray) {
+        let noneOpt = '';
+        let s2 = [], s1 = [], s0 = [], others = [];
+
+        dataArray.forEach((item, index) => {
+            const optObj = { html: `<option value="${index}">${item.name}</option>`, name: item.name };
+            if (item.name === "None") {
+                noneOpt = optObj.html;
+            } else if (item.name.includes("(S2)")) {
+                s2.push(optObj);
+            } else if (item.name.includes("(S1)")) {
+                s1.push(optObj);
+            } else if (item.name.includes("(S0)")) {
+                s0.push(optObj);
+            } else {
+                others.push(optObj);
+            }
+        });
+        
+        s2.sort((a, b) => a.name.localeCompare(b.name));
+        s1.sort((a, b) => a.name.localeCompare(b.name));
+        s0.sort((a, b) => a.name.localeCompare(b.name));
+        others.sort((a, b) => a.name.localeCompare(b.name));
+
+        let html = noneOpt;
+        if (s2.length > 0) html += `<optgroup label="Size 2 Lasers">${s2.map(o => o.html).join('')}</optgroup>`;
+        if (s1.length > 0) html += `<optgroup label="Size 1 Lasers">${s1.map(o => o.html).join('')}</optgroup>`;
+        if (s0.length > 0) html += `<optgroup label="Size 0 Lasers">${s0.map(o => o.html).join('')}</optgroup>`;
+        if (others.length > 0) html += `<optgroup label="Uncategorized">${others.map(o => o.html).join('')}</optgroup>`;
+        
+        return html;
+    }
+
+    function initUI() {
+        const container = document.getElementById('setups-container');
+        for (let i = 0; i < NUM_SETUPS; i++) {
+            const card = document.createElement('div');
+            card.className = 'setup-card';
+            
+            card.innerHTML = `
+                <h3>Operator ${i + 1}</h3>
+                <div class="form-group">
+                    <label>Laser Head</label>
+                    <select id="laser-${i}" onchange="handleLaserChange(${i})">
+                        ${buildLaserOptions(lasers)}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Module 1</label>
+                    <select id="mod1-${i}" onchange="calculate()" disabled>
+                        ${buildOptions(modules)}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Module 2</label>
+                    <select id="mod2-${i}" onchange="calculate()" disabled>
+                        ${buildOptions(modules)}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Module 3</label>
+                    <select id="mod3-${i}" onchange="calculate()" disabled>
+                        ${buildOptions(modules)}
+                    </select>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+
+        document.getElementById('global-gadget').innerHTML = buildOptions(gadgets);
+        calculate(); 
+    }
+
+    function handleLaserChange(setupIndex) {
+        const laserSelect = document.getElementById(`laser-${setupIndex}`);
+        const laserIndex = laserSelect.value;
+        const selectedLaser = lasers[laserIndex];
+        
+        for (let m = 1; m <= 3; m++) {
+            const modSelect = document.getElementById(`mod${m}-${setupIndex}`);
+            const slots = selectedLaser.slots || 0;
+            if (m <= slots) {
+                modSelect.disabled = false;
+            } else {
+                modSelect.value = 0; 
+                modSelect.disabled = true;
+            }
+        }
+        calculate();
+    }
+
+    function calcMultiplicativeMod(valuesArray) {
+        if (valuesArray.length === 0) return 0;
+        let product = 1;
+        valuesArray.forEach(val => {
+            product *= (1 + (val / 100));
+        });
+        return ((product - 1) * 100);
+    }
+
+    function updateColoredStat(elementId, value, isNegativeGood, suffix = '%') {
+        const el = document.getElementById(elementId);
+        let formattedValue = value.toFixed(1);
+        
+        if (value > 0) formattedValue = '+' + formattedValue;
+        
+        el.innerText = (value === 0 ? '0' : formattedValue) + suffix;
+
+        if (value === 0) {
+            el.style.color = 'var(--text-main)'; 
+        } else if (isNegativeGood) {
+            el.style.color = value < 0 ? 'var(--good-stat)' : 'var(--bad-stat)';
+        } else {
+            el.style.color = value > 0 ? 'var(--good-stat)' : 'var(--bad-stat)';
+        }
+    }
+
+    function calculate() {
+        let totalMaxPower = 0;
+        let totalMinPower = 0;
+
+        let inertMods = [];
+        let resistanceMods = [];
+        let instabilityMods = [];
+        let optWinMods = [];
+        let overchargeMods = [];
+        let shatterMods = [];
+
+        // 1. Process Operators (Lasers & Modules)
+        for (let i = 0; i < NUM_SETUPS; i++) {
+            const lIndex = document.getElementById(`laser-${i}`).value;
+            const laser = lasers[lIndex];
+
+            if (laser && laser.name !== "None") {
+                let activeEquips = [];
+                for (let m = 1; m <= 3; m++) {
+                    const modSelect = document.getElementById(`mod${m}-${i}`);
+                    if (!modSelect.disabled) {
+                        activeEquips.push(modules[modSelect.value]);
+                    }
+                }
+
+                let laserInertVal = parseFloat(laser.extraction || 0);
+                if (!isNaN(laserInertVal) && laserInertVal !== 0) {
+                    inertMods.push(-laserInertVal); 
+                }
+
+                let powerModifierPercent = 0;
+
+                activeEquips.forEach(eq => {
+                    if (eq && eq.name !== "None") {
+                        powerModifierPercent += (eq.power || 0);
+                        
+                        let eqInertVal = parseFloat(eq.extraction || 0);
+                        if (!isNaN(eqInertVal) && eqInertVal !== 0) {
+                            inertMods.push(-eqInertVal);
+                        }
+
+                        if (eq.resistance) resistanceMods.push(eq.resistance);
+                        if (eq.instability) instabilityMods.push(eq.instability);
+                        if (eq.optimalWin) optWinMods.push(eq.optimalWin);
+                        if (eq.overcharge) overchargeMods.push(eq.overcharge);
+                        if (eq.shatter) shatterMods.push(eq.shatter);
+                    }
+                });
+
+                let actualMaxPower = (laser.power || 0) * (1 + (powerModifierPercent / 100));
+                let actualMinPower = actualMaxPower * ((laser.minPowerPct || 0) / 100);
+
+                totalMaxPower += actualMaxPower;
+                totalMinPower += actualMinPower;
+
+                if (laser.resistance) resistanceMods.push(laser.resistance);
+                if (laser.instability) instabilityMods.push(laser.instability);
+                if (laser.optimalWin) optWinMods.push(laser.optimalWin);
+                if (laser.overcharge) overchargeMods.push(laser.overcharge);
+                if (laser.shatter) shatterMods.push(laser.shatter);
+            }
+        }
+
+        // 2. Process Global Gadget
+        const globalGadgetSelect = document.getElementById('global-gadget');
+        if (globalGadgetSelect) {
+            const gadget = gadgets[globalGadgetSelect.value];
+            if (gadget && gadget.name !== "None") {
+                
+                let gadInertVal = parseFloat(gadget.extraction || 0);
+                if (!isNaN(gadInertVal) && gadInertVal !== 0) {
+                    inertMods.push(-gadInertVal);
+                }
+
+                if (gadget.resistance) resistanceMods.push(gadget.resistance);
+                if (gadget.instability) instabilityMods.push(gadget.instability);
+                if (gadget.optimalWin) optWinMods.push(gadget.optimalWin);
+                if (gadget.overcharge) overchargeMods.push(gadget.overcharge);
+                if (gadget.shatter) shatterMods.push(gadget.shatter);
+            }
+        }
+
+        // 3. Multiplicatively Stack All Modifiers
+        const finalInert = calcMultiplicativeMod(inertMods);
+        const finalResistance = calcMultiplicativeMod(resistanceMods);
+        const finalInstability = calcMultiplicativeMod(instabilityMods);
+        const finalOptWin = calcMultiplicativeMod(optWinMods);
+        const finalOvercharge = calcMultiplicativeMod(overchargeMods);
+        const finalShatter = calcMultiplicativeMod(shatterMods);
+
+        // Update UI
+        document.getElementById('res-max-power').innerText = Math.round(totalMaxPower).toLocaleString();
+        document.getElementById('res-min-power').innerText = Math.round(totalMinPower).toLocaleString();
+        
+        updateColoredStat('res-inert', finalInert, true, '%');                 
+        updateColoredStat('res-resistance', finalResistance, true, '%');       
+        updateColoredStat('res-instability', finalInstability, true, '%');     
+        updateColoredStat('res-opt-win', finalOptWin, false, '%');                 
+        updateColoredStat('res-overcharge', finalOvercharge, true, '%');       
+        updateColoredStat('res-shatter', finalShatter, true, '%');             
+    }
+
+    window.onload = initUI;
+</script>
+
+</body>
+</html>
