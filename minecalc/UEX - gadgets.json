@@ -1,0 +1,80 @@
+[
+  {
+    "Item": "BoreMax",
+    "Cluster Modifier": 30,
+    "Instability": "",
+    "Item Type": "",
+    "Laser Instability": -70,
+    "Optimal Charge Window Rate": "",
+    "Optimal Charge Window Size": "",
+    "Resistance": 10,
+    "Version": 4.1,
+    "Updated": 1745119833,
+    "Datarunner": "Zatecc"
+  },
+  {
+    "Item": "Okunis",
+    "Cluster Modifier": -20,
+    "Instability": "",
+    "Item Type": "",
+    "Laser Instability": "",
+    "Optimal Charge Window Rate": 100,
+    "Optimal Charge Window Size": 50,
+    "Resistance": "",
+    "Version": 4.5,
+    "Updated": 1766282460,
+    "Datarunner": "leky"
+  },
+  {
+    "Item": "OptiMax",
+    "Cluster Modifier": 60,
+    "Instability": "",
+    "Item Type": "",
+    "Laser Instability": "",
+    "Optimal Charge Window Rate": "",
+    "Optimal Charge Window Size": -30,
+    "Resistance": -30,
+    "Version": 4.1,
+    "Updated": 1745183921,
+    "Datarunner": "Zatecc"
+  },
+  {
+    "Item": "Sabir",
+    "Cluster Modifier": "",
+    "Instability": 15,
+    "Item Type": "",
+    "Laser Instability": "",
+    "Optimal Charge Window Rate": "",
+    "Optimal Charge Window Size": 50,
+    "Resistance": -50,
+    "Version": 4.1,
+    "Updated": 1745119832,
+    "Datarunner": "Zatecc"
+  },
+  {
+    "Item": "Stalwart",
+    "Cluster Modifier": 30,
+    "Instability": "",
+    "Item Type": "",
+    "Laser Instability": -35,
+    "Optimal Charge Window Rate": 50,
+    "Optimal Charge Window Size": -30,
+    "Resistance": "",
+    "Version": 4.1,
+    "Updated": 1745183922,
+    "Datarunner": "Zatecc"
+  },
+  {
+    "Item": "Waveshift",
+    "Cluster Modifier": "",
+    "Instability": "",
+    "Item Type": "",
+    "Laser Instability": -35,
+    "Optimal Charge Window Rate": -30,
+    "Optimal Charge Window Size": 100,
+    "Resistance": "",
+    "Version": 4.1,
+    "Updated": 1745119831,
+    "Datarunner": "Zatecc"
+  }
+]

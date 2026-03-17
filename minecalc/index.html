@@ -73,15 +73,20 @@
             align-items: center;
         }
 
-        .operator-results span.label {
+        .local-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .local-stat .label {
             color: var(--text-muted); 
-            font-size: 0.85em; 
+            font-size: 0.75em; 
             text-transform: uppercase;
             font-weight: bold;
         }
 
-        .operator-results span.value {
-            font-size: 1.4em;
+        .local-stat .value {
+            font-size: 1.2em;
             font-weight: bold;
         }
 
@@ -277,11 +282,23 @@
             color: #ffda47;
         }
 
+        #loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.5em;
+            color: var(--accent);
+        }
+
+        #app-content {
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div id="loading">Loading UEX Data Files...</div>
+
+<div id="app-content" class="container">
     <h1>MineCalc <span style="font-size: 0.5em; color: var(--text-muted);">| Loadout Calculator</span></h1>
     
     <div class="setups-grid" id="setups-container">
@@ -321,6 +338,10 @@
                 <span class="tooltip-text">Regardless of how many modifiers you stack, the Optimal Charge Window is hard-capped at 50% in-game.</span>
             </div>
             <div class="stat-box">
+                <div class="stat-title">Opt. Charge Rate</div>
+                <div class="stat-value" id="res-opt-charge">0%</div>
+            </div>
+            <div class="stat-box">
                 <div class="stat-title">Overcharge Rate</div>
                 <div class="stat-value" id="res-overcharge">0%</div>
             </div>
@@ -340,20 +361,135 @@
     </div>
 </footer>
 
-<script src="data.js"></script>
-
 <script>
     const NUM_SETUPS = 3; 
 
+    // Empty arrays to be filled by the UEX JSON files
+    let lasers = [];
+    let modules = [];
+    let gadgets = [];
+
+    // Helper to safely parse strings to floats
+    function safeFloat(val, def = 0) {
+        if (val === "" || val === null || val === undefined) return def;
+        if (typeof val === 'string') {
+            val = val.replace('%', '').replace(',', '');
+        }
+        let parsed = parseFloat(val);
+        return isNaN(parsed) ? def : parsed;
+    }
+
+    // Load and Parse the UEX Data
+    async function loadData() {
+        try {
+            const [lasersRes, modulesRes, gadgetsRes] = await Promise.all([
+                fetch('UEX - mining-laser-heads.json'),
+                fetch('UEX - mining-modules.json'),
+                fetch('UEX - gadgets.json')
+            ]);
+
+            const rawLasers = await lasersRes.json();
+            const rawModules = await modulesRes.json();
+            const rawGadgets = await gadgetsRes.json();
+
+            // 1. Process Lasers
+            lasers.push({ name: "None", size: 0, slots: 0, powerMin: 0, powerMax: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0 });
+            rawLasers.forEach(l => {
+                let name = `${l['Item']} (S${l['Size'] || '?'})`;
+                let pm = l['Mining Laser Power'] || '';
+                let pmin = 0, pmax = 0;
+                
+                // UEX writes power as "189-1890", we split it into min and max
+                if (typeof pm === 'string' && pm.includes('-')) {
+                    pmin = safeFloat(pm.split('-')[0]);
+                    pmax = safeFloat(pm.split('-')[1]);
+                } else {
+                    pmax = safeFloat(pm);
+                    let tmin = safeFloat(l['Throttle min']);
+                    pmin = pmax * (tmin / 100);
+                }
+
+                // If Extraction Power is empty, check Throughput
+                let ext = safeFloat(l['Extraction Laser Power']);
+                if (ext === 0) ext = safeFloat(l['Extraction Throughput']);
+
+                lasers.push({ 
+                    name: name, 
+                    size: safeFloat(l['Size']), 
+                    slots: safeFloat(l['Module Slots']), 
+                    powerMin: pmin, 
+                    powerMax: pmax, 
+                    extraction: ext, 
+                    inert: safeFloat(l['Inert Material Level']), 
+                    resistance: safeFloat(l['Resistance']), 
+                    instability: safeFloat(l['Laser Instability']) || safeFloat(l['Instability']), 
+                    optimalWin: safeFloat(l['Optimal Charge Window Size']), 
+                    optCharge: safeFloat(l['Optimal Charge Window Rate']), 
+                    overcharge: safeFloat(l['Catastrophic Charge Rate']), 
+                    shatter: safeFloat(l['Shatter Damage']) 
+                });
+            });
+
+            // 2. Process Modules
+            modules.push({ name: "None", power: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0 });
+            rawModules.forEach(m => {
+                // UEX sets power/ext as "135" (+35%) or "85" (-15%). We convert this to pure +/- modifiers.
+                let rawP = safeFloat(m['Mining Laser Power'], 100);
+                if (rawP === 0) rawP = 100;
+                let rawE = safeFloat(m['Extraction Laser Power'], 100);
+                if (rawE === 0) rawE = 100;
+
+                modules.push({ 
+                    name: m['Item'], 
+                    power: rawP - 100, 
+                    extraction: rawE - 100, 
+                    inert: safeFloat(m['Inert Material Level']), 
+                    resistance: safeFloat(m['Resistance']), 
+                    instability: safeFloat(m['Laser Instability']), 
+                    optimalWin: safeFloat(m['Optimal Charge Window Size']), 
+                    optCharge: safeFloat(m['Optimal Charge Rate']), 
+                    overcharge: safeFloat(m['Catastrophic Charge Rate']), 
+                    shatter: safeFloat(m['Shatter Damage']) 
+                });
+            });
+
+            // 3. Process Gadgets
+            gadgets.push({ name: "None", power: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0 });
+            rawGadgets.forEach(g => {
+                gadgets.push({ 
+                    name: g['Item'], 
+                    power: 0, 
+                    extraction: 0, 
+                    inert: safeFloat(g['Inert Material Level']), 
+                    resistance: safeFloat(g['Resistance']), 
+                    instability: safeFloat(g['Laser Instability']) || safeFloat(g['Instability']), 
+                    optimalWin: safeFloat(g['Optimal Charge Window Size']), 
+                    optCharge: safeFloat(g['Optimal Charge Window Rate']), 
+                    overcharge: safeFloat(g['Catastrophic Charge Rate']), 
+                    shatter: safeFloat(g['Shatter Damage']) 
+                });
+            });
+
+            // Hide loading, show app, run init
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            initUI();
+
+        } catch (error) {
+            document.getElementById('loading').innerText = "Error loading UEX data files! Make sure the 3 JSON files are in the same folder, and that you are running this on a Web Server (like GitHub Pages or VS Code Live Server).";
+            document.getElementById('loading').style.color = "var(--bad-stat)";
+            console.error(error);
+        }
+    }
+
+
     function buildOptions(dataArray) {
         const mapped = dataArray.map((item, index) => ({ item, index }));
-        
         mapped.sort((a, b) => {
             if (a.item.name === "None") return -1;
             if (b.item.name === "None") return 1;
             return a.item.name.localeCompare(b.item.name);
         });
-
         return mapped.map(obj => `<option value="${obj.index}">${obj.item.name}</option>`).join('');
     }
 
@@ -423,8 +559,14 @@
                     </select>
                 </div>
                 <div class="operator-results">
-                    <span class="label">Local Inert Filter</span>
-                    <span class="value" id="op-inert-${i}">0%</span>
+                    <div class="local-stat">
+                        <span class="label">Local Ext. Power</span>
+                        <span class="value" id="op-ext-${i}">0.0</span>
+                    </div>
+                    <div class="local-stat">
+                        <span class="label">Local Inert</span>
+                        <span class="value" id="op-inert-${i}">0%</span>
+                    </div>
                 </div>
             `;
             container.appendChild(card);
@@ -466,9 +608,7 @@
         if (!el) return;
         
         let formattedValue = value.toFixed(1);
-        
         if (value > 0) formattedValue = '+' + formattedValue;
-        
         el.innerText = (value === 0 ? '0' : formattedValue) + suffix;
 
         if (value === 0) {
@@ -487,13 +627,14 @@
         let resistanceMods = [];
         let instabilityMods = [];
         let optWinMods = [];
+        let optChargeMods = [];
         let overchargeMods = [];
         let shatterMods = [];
 
         function getInertVal(item) {
             if (!item) return 0;
-            if (item.inert !== undefined) return parseFloat(item.inert);
-            if (item.extraction !== undefined) return -parseFloat(item.extraction);
+            if (item.inert !== undefined && item.inert !== 0) return parseFloat(item.inert);
+            if (item.extraction !== undefined && item.extraction < 0) return parseFloat(item.extraction);
             return 0;
         }
 
@@ -502,6 +643,8 @@
             const laser = lasers[lIndex];
             
             let operatorInertMods = [];
+            let opExtModifierPercent = 0;
+            let opPowerModifierPercent = 0;
 
             if (laser && laser.name !== "None") {
                 let activeEquips = [];
@@ -512,44 +655,43 @@
                     }
                 }
 
-                let laserInertVal = getInertVal(laser);
-                if (!isNaN(laserInertVal) && laserInertVal !== 0) {
-                    operatorInertMods.push(laserInertVal); 
-                }
-
-                let powerModifierPercent = 0;
+                if (laser.inert) operatorInertMods.push(laser.inert); 
 
                 activeEquips.forEach(eq => {
                     if (eq && eq.name !== "None") {
-                        powerModifierPercent += (eq.power || 0);
-                        
-                        let eqInertVal = getInertVal(eq);
-                        if (!isNaN(eqInertVal) && eqInertVal !== 0) {
-                            operatorInertMods.push(eqInertVal);
-                        }
+                        if (eq.power) opPowerModifierPercent += eq.power;
+                        if (eq.extraction) opExtModifierPercent += eq.extraction;
+                        if (eq.inert) operatorInertMods.push(eq.inert);
 
                         if (eq.resistance) resistanceMods.push(eq.resistance);
                         if (eq.instability) instabilityMods.push(eq.instability);
                         if (eq.optimalWin) optWinMods.push(eq.optimalWin);
+                        if (eq.optCharge) optChargeMods.push(eq.optCharge);
                         if (eq.overcharge) overchargeMods.push(eq.overcharge);
                         if (eq.shatter) shatterMods.push(eq.shatter);
                     }
                 });
 
-                let actualMaxPower = (laser.power || 0) * (1 + (powerModifierPercent / 100));
-                let actualMinPower = actualMaxPower * ((laser.minPowerPct || 0) / 100);
+                let actualMaxPower = (laser.powerMax || 0) * (1 + (opPowerModifierPercent / 100));
+                let actualMinPower = (laser.powerMin || 0) * (1 + (opPowerModifierPercent / 100));
 
                 totalMaxPower += actualMaxPower;
                 totalMinPower += actualMinPower;
 
+                let actualExtraction = (laser.extraction || 0) * (1 + (opExtModifierPercent / 100));
+
                 if (laser.resistance) resistanceMods.push(laser.resistance);
                 if (laser.instability) instabilityMods.push(laser.instability);
                 if (laser.optimalWin) optWinMods.push(laser.optimalWin);
+                if (laser.optCharge) optChargeMods.push(laser.optCharge);
                 if (laser.overcharge) overchargeMods.push(laser.overcharge);
                 if (laser.shatter) shatterMods.push(laser.shatter);
+
+                document.getElementById(`op-ext-${i}`).innerText = actualExtraction.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
+            } else {
+                document.getElementById(`op-ext-${i}`).innerText = '0.0';
             }
             
-            // Calculate and display local inert for this operator
             const finalOpInert = calcMultiplicativeMod(operatorInertMods);
             updateColoredStat(`op-inert-${i}`, finalOpInert, true, '%');
         }
@@ -561,6 +703,7 @@
                 if (gadget.resistance) resistanceMods.push(gadget.resistance);
                 if (gadget.instability) instabilityMods.push(gadget.instability);
                 if (gadget.optimalWin) optWinMods.push(gadget.optimalWin);
+                if (gadget.optCharge) optChargeMods.push(gadget.optCharge);
                 if (gadget.overcharge) overchargeMods.push(gadget.overcharge);
                 if (gadget.shatter) shatterMods.push(gadget.shatter);
             }
@@ -569,6 +712,7 @@
         const finalResistance = calcMultiplicativeMod(resistanceMods);
         const finalInstability = calcMultiplicativeMod(instabilityMods);
         const finalOptWin = calcMultiplicativeMod(optWinMods);
+        const finalOptCharge = calcMultiplicativeMod(optChargeMods);
         const finalOvercharge = calcMultiplicativeMod(overchargeMods);
         const finalShatter = calcMultiplicativeMod(shatterMods);
 
@@ -577,12 +721,14 @@
                
         updateColoredStat('res-resistance', finalResistance, true, '%');       
         updateColoredStat('res-instability', finalInstability, true, '%');     
-        updateColoredStat('res-opt-win', finalOptWin, false, '%');                 
+        updateColoredStat('res-opt-win', finalOptWin, false, '%');             
+        updateColoredStat('res-opt-charge', finalOptCharge, false, '%');    
         updateColoredStat('res-overcharge', finalOvercharge, true, '%');       
         updateColoredStat('res-shatter', finalShatter, true, '%');             
     }
 
-    window.onload = initUI;
+    // Start by loading the data, not by generating UI directly
+    window.onload = loadData;
 </script>
 
 </body>
