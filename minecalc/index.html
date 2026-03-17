@@ -349,6 +349,11 @@
                 <div class="stat-title">Shatter Damage</div>
                 <div class="stat-value" id="res-shatter">0%</div>
             </div>
+            <div class="stat-box has-tooltip">
+                <div class="stat-title">Cluster Modifier</div>
+                <div class="stat-value" id="res-cluster">0%</div>
+                <span class="tooltip-text">Affects the final size of the broken chunks. Positive values create larger, more concentrated clusters.</span>
+            </div>
         </div>
     </div>
 </div>
@@ -393,7 +398,7 @@
             const rawGadgets = await gadgetsRes.json();
 
             // 1. Process Lasers
-            lasers.push({ name: "None", size: 0, slots: 0, powerMin: 0, powerMax: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0 });
+            lasers.push({ name: "None", size: 0, slots: 0, powerMin: 0, powerMax: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0, cluster: 0 });
             rawLasers.forEach(l => {
                 let name = `${l['Item']} (S${l['Size'] || '?'})`;
                 let pm = l['Mining Laser Power'] || '';
@@ -426,14 +431,14 @@
                     optimalWin: safeFloat(l['Optimal Charge Window Size']), 
                     optCharge: safeFloat(l['Optimal Charge Window Rate']), 
                     overcharge: safeFloat(l['Catastrophic Charge Rate']), 
-                    shatter: safeFloat(l['Shatter Damage']) 
+                    shatter: safeFloat(l['Shatter Damage']),
+                    cluster: 0 // Lasers don't impact cluster mod
                 });
             });
 
             // 2. Process Modules
-            modules.push({ name: "None", power: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0 });
+            modules.push({ name: "None", power: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0, cluster: 0 });
             rawModules.forEach(m => {
-                // UEX sets power/ext as "135" (+35%) or "85" (-15%). We convert this to pure +/- modifiers.
                 let rawP = safeFloat(m['Mining Laser Power'], 100);
                 if (rawP === 0) rawP = 100;
                 let rawE = safeFloat(m['Extraction Laser Power'], 100);
@@ -449,12 +454,13 @@
                     optimalWin: safeFloat(m['Optimal Charge Window Size']), 
                     optCharge: safeFloat(m['Optimal Charge Rate']), 
                     overcharge: safeFloat(m['Catastrophic Charge Rate']), 
-                    shatter: safeFloat(m['Shatter Damage']) 
+                    shatter: safeFloat(m['Shatter Damage']),
+                    cluster: 0 // Modules don't impact cluster mod
                 });
             });
 
             // 3. Process Gadgets
-            gadgets.push({ name: "None", power: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0 });
+            gadgets.push({ name: "None", power: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0, cluster: 0 });
             rawGadgets.forEach(g => {
                 gadgets.push({ 
                     name: g['Item'], 
@@ -466,11 +472,11 @@
                     optimalWin: safeFloat(g['Optimal Charge Window Size']), 
                     optCharge: safeFloat(g['Optimal Charge Window Rate']), 
                     overcharge: safeFloat(g['Catastrophic Charge Rate']), 
-                    shatter: safeFloat(g['Shatter Damage']) 
+                    shatter: safeFloat(g['Shatter Damage']),
+                    cluster: safeFloat(g['Cluster Modifier']) // Added from Gadget Data
                 });
             });
 
-            // Hide loading, show app, run init
             document.getElementById('loading').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
             initUI();
@@ -630,13 +636,7 @@
         let optChargeMods = [];
         let overchargeMods = [];
         let shatterMods = [];
-
-        function getInertVal(item) {
-            if (!item) return 0;
-            if (item.inert !== undefined && item.inert !== 0) return parseFloat(item.inert);
-            if (item.extraction !== undefined && item.extraction < 0) return parseFloat(item.extraction);
-            return 0;
-        }
+        let clusterMods = [];
 
         for (let i = 0; i < NUM_SETUPS; i++) {
             const lIndex = document.getElementById(`laser-${i}`).value;
@@ -706,6 +706,7 @@
                 if (gadget.optCharge) optChargeMods.push(gadget.optCharge);
                 if (gadget.overcharge) overchargeMods.push(gadget.overcharge);
                 if (gadget.shatter) shatterMods.push(gadget.shatter);
+                if (gadget.cluster) clusterMods.push(gadget.cluster);
             }
         }
 
@@ -715,6 +716,7 @@
         const finalOptCharge = calcMultiplicativeMod(optChargeMods);
         const finalOvercharge = calcMultiplicativeMod(overchargeMods);
         const finalShatter = calcMultiplicativeMod(shatterMods);
+        const finalCluster = calcMultiplicativeMod(clusterMods);
 
         document.getElementById('res-max-power').innerText = Math.round(totalMaxPower).toLocaleString();
         document.getElementById('res-min-power').innerText = Math.round(totalMinPower).toLocaleString();
@@ -725,6 +727,7 @@
         updateColoredStat('res-opt-charge', finalOptCharge, false, '%');    
         updateColoredStat('res-overcharge', finalOvercharge, true, '%');       
         updateColoredStat('res-shatter', finalShatter, true, '%');             
+        updateColoredStat('res-cluster', finalCluster, false, '%');             
     }
 
     // Start by loading the data, not by generating UI directly

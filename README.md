@@ -23,12 +23,10 @@ MineCalc is a comprehensive, multi-crew mining loadout calculator. Whether you a
 * **Multi-Crew Support:** Calculate the combined mining power for up to 3 operators simultaneously.
 * **True-to-Game Math:** Accurately separates stats into Additive pools (Raw Power, Extraction Rates) and Multiplicative stacks (Inert Filtering, Rock Resistance, Instability) exactly how Star Citizen calculates them.
 * **Global Gadgets:** Apply a single mining gadget to your target rock to instantly see the fleet-wide debuffs and buffs.
-* **Dynamic UI:** Features a sleek, dark-themed interface with color-coded stats (green for good, red for bad) and interactive tooltips.
+* **Smart Logic:** Automatically calculates local vs. global stats (like local extraction and inert filtering per turret) and factors in hard-caps like the 50% Optimal Charge Window limit.
 
-### Features:
-* This entire repository is built to be lightweight and fast:
-* **HTML5** & **CSS3** (Custom styling, zero heavy frameworks)
-* **Vanilla JavaScript** (For the MineCalc math logic)
+### 📊 Data Source & Credits
+A massive shoutout to **[UEX (United Earth eXchange)](https://uexcorp.space/)** for maintaining the most accurate and up-to-date Star Citizen database. MineCalc is built to directly parse UEX data files, ensuring the math is always perfectly synced with the latest live patch!
 
 ## 🤝 Connect
 * **Discord:** itss_illy
