@@ -134,39 +134,9 @@
     </footer>
 </div>
 
-<script>
-    const ores = [
-        { name: "Debris", signature: 2000 },
-        { name: "Ground Vehicle Deposits", signature: 3000 },
-        { name: "Quantainium", signature: 3170 },
-        { name: "Stileron", signature: 3185 },
-        { name: "Savrilium", signature: 3200 },
-        { name: "Ouratite", signature: 3370 },
-        { name: "Riccite", signature: 3385 },
-        { name: "Lindinium", signature: 3400 },
-        { name: "Beryl", signature: 3540 },
-        { name: "Taranite", signature: 3555 },
-        { name: "Borase", signature: 3570 },
-        { name: "Gold", signature: 3585 },
-        { name: "Bexalite", signature: 3600 },
-        { name: "Laranite", signature: 3825 },
-        { name: "Aslarite", signature: 3840 },
-        { name: "Titanium", signature: 3855 },
-        { name: "Tungsten", signature: 3870 },
-        { name: "Agricium", signature: 3885 },
-        { name: "Torite", signature: 3900 },
-        { name: "FPS Mineables", signature: 4000 },
-        { name: "Hephestanite", signature: 4180 },
-        { name: "Tin", signature: 4195 },
-        { name: "Quartz", signature: 4210 },
-        { name: "Corundum", signature: 4225 },
-        { name: "Copper", signature: 4240 },
-        { name: "Silicon", signature: 4255 },
-        { name: "Iron", signature: 4270 },
-        { name: "Aluminium", signature: 4285 },
-        { name: "Ice", signature: 4300 }
-    ];
+<script src="data.js"></script>
 
+<script>
     function findOres() {
         const inputSignatureStr = document.getElementById('signatureInput').value;
         const resultsDiv = document.getElementById('results');
@@ -179,6 +149,7 @@
         }
 
         let matches = [];
+        // It will automatically use the "ores" array from data.js!
         for (const ore of ores) {
             if (signature % ore.signature === 0) {
                 const count = signature / ore.signature;
