@@ -485,9 +485,8 @@ function calculate() {
                 pStatus.style.color = "white";
                 pReqDisplay.innerText = "Required Power: ∞ (Resist ≥ 100%)";
             } else {
-                // Ensure effectiveRes doesn't go below 0 for the math
+                // --- UPDATED POWER LOGIC ---
                 effectiveRes = Math.max(0, effectiveRes);
-                
                 const requiredPower = (inputMass / (1 - (effectiveRes * 0.01))) / 5;
                 pReqDisplay.innerText = "Required Power: " + Math.round(requiredPower).toLocaleString();
 
@@ -495,19 +494,19 @@ function calculate() {
                     pStatus.innerText = "Impossible";
                     pStatus.style.backgroundColor = "var(--impossible)";
                     pStatus.style.color = "white";
-                } else if (tMax < requiredPower * 1.1) {
+                } else if (tMin > requiredPower) {
+                    pStatus.innerText = "Too Much Power (Min)";
+                    pStatus.style.backgroundColor = "var(--overpower)";
+                    pStatus.style.color = "white";
+                } else if (tMax < requiredPower * 1.1 || tMax > requiredPower * 2.5) {
                     pStatus.innerText = "Difficult";
                     pStatus.style.backgroundColor = "var(--difficult)";
                     pStatus.style.color = "black";
-                } else if (tMax < requiredPower * 2.0) {
+                } else {
                     pStatus.innerText = "Crackable";
                     pStatus.style.backgroundColor = "var(--crackable)";
                     pStatus.style.color = "white";
-                } else {
-                    pStatus.innerText = "Too Much Power";
-                    pStatus.style.backgroundColor = "var(--overpower)";
-                    pStatus.style.color = "white";
-                }
+            }
             }
 
             // Instability logic
