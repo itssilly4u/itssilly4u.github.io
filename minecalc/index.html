@@ -376,16 +376,19 @@
         el.style.color = val === 0 ? 'var(--text-main)' : ((val > 0 ? !inv : inv) ? 'var(--good-stat)' : 'var(--bad-stat)');
     }
 
-    function calculate() {
+function calculate() {
         let tMax = 0, tMin = 0;
-        let fleetRes = [], fleetInst = []; // Laser/Module only
-        let gadgetRes = [], gadgetInst = []; // Gadget only
+        let fleetRes = [], fleetInst = []; 
+        let gadgetRes = [], gadgetInst = []; 
         let win = [], chg = [], over = [], shat = [], clust = [];
 
         for (let i=0; i<NUM_SETUPS; i++) {
-            if (document.getElementById(`card-${i}`).classList.contains('off')) {
-                document.getElementById(`op-ext-${i}`).innerText = '0.0';
-                document.getElementById(`op-inert-${i}`).innerText = '0%';
+            const card = document.getElementById(`card-${i}`);
+            if (!card || card.classList.contains('off')) {
+                const extEl = document.getElementById(`op-ext-${i}`);
+                const inertEl = document.getElementById(`op-inert-${i}`);
+                if (extEl) extEl.innerText = '0.0';
+                if (inertEl) inertEl.innerText = '0%';
                 continue;
             }
             let l = lasers[document.getElementById(`cs-laser-${i}`).dataset.value];
@@ -432,7 +435,6 @@
             }
         });
 
-        // Combined modifiers for global display
         const totalResMod = calcMulti([...fleetRes, ...gadgetRes]);
         const totalInstMod = calcMulti([...fleetInst, ...gadgetInst]);
 
@@ -446,54 +448,54 @@
         updateStat('res-shatter', calcMulti(shat), true);
         updateStat('res-cluster', calcMulti(clust), false);
 
-        // --- ROCK CRACKER MATH ---
+        // --- FIXED ROCK CRACKER MATH ---
         const inputMass = safeFloat(document.getElementById('rock-mass').value);
         const inputRes = safeFloat(document.getElementById('rock-res').value);
         const inputInst = safeFloat(document.getElementById('rock-inst').value);
         const scannedWithGadgets = document.getElementById('gadgets-scanned').checked;
 
         if (inputMass > 0) {
-            // Determine effective resistance
-            // If gadgets were already attached during scan, the scanned resistance already includes them.
-            // We only apply fleet modifiers (lasers/modules).
-            let effectiveRes;
-            if (scannedWithGadgets) {
-                effectiveRes = inputRes * (1 + calcMulti(fleetRes) / 100);
-            } else {
-                effectiveRes = inputRes * (1 + totalResMod / 100);
-            }
+            let resModToApply = scannedWithGadgets ? calcMulti(fleetRes) : totalResMod;
+            let effectiveRes = inputRes * (1 + resModToApply / 100);
 
-            // Power logic
-            const requiredPower = (inputMass / (1 - (effectiveRes * 0.01))) / 5;
             const pStatus = document.getElementById('crack-power-status');
-            
-            document.getElementById('crack-power-required').innerText = "Required Power: " + Math.round(requiredPower).toLocaleString();
+            const pReqDisplay = document.getElementById('crack-power-required');
 
-            if (tMax < requiredPower) {
+            // Safety Check: If resistance is 100% or more, power required is "Infinite"
+            if (effectiveRes >= 100) {
                 pStatus.innerText = "Impossible";
                 pStatus.style.backgroundColor = "var(--impossible)";
                 pStatus.style.color = "white";
-            } else if (tMax < requiredPower * 1.1) {
-                pStatus.innerText = "Difficult";
-                pStatus.style.backgroundColor = "var(--difficult)";
-                pStatus.style.color = "black";
-            } else if (tMax < requiredPower * 2.0) {
-                pStatus.innerText = "Crackable";
-                pStatus.style.backgroundColor = "var(--crackable)";
-                pStatus.style.color = "white";
+                pReqDisplay.innerText = "Required Power: ∞ (Resist ≥ 100%)";
             } else {
-                pStatus.innerText = "Too Much Power";
-                pStatus.style.backgroundColor = "var(--overpower)";
-                pStatus.style.color = "white";
+                // Ensure effectiveRes doesn't go below 0 for the math
+                effectiveRes = Math.max(0, effectiveRes);
+                
+                const requiredPower = (inputMass / (1 - (effectiveRes * 0.01))) / 5;
+                pReqDisplay.innerText = "Required Power: " + Math.round(requiredPower).toLocaleString();
+
+                if (tMax < requiredPower) {
+                    pStatus.innerText = "Impossible";
+                    pStatus.style.backgroundColor = "var(--impossible)";
+                    pStatus.style.color = "white";
+                } else if (tMax < requiredPower * 1.1) {
+                    pStatus.innerText = "Difficult";
+                    pStatus.style.backgroundColor = "var(--difficult)";
+                    pStatus.style.color = "black";
+                } else if (tMax < requiredPower * 2.0) {
+                    pStatus.innerText = "Crackable";
+                    pStatus.style.backgroundColor = "var(--crackable)";
+                    pStatus.style.color = "white";
+                } else {
+                    pStatus.innerText = "Too Much Power";
+                    pStatus.style.backgroundColor = "var(--overpower)";
+                    pStatus.style.color = "white";
+                }
             }
 
             // Instability logic
-            let finalInst;
-            if (scannedWithGadgets) {
-                finalInst = inputInst * (1 + calcMulti(fleetInst) / 100);
-            } else {
-                finalInst = inputInst * (1 + totalInstMod / 100);
-            }
+            let instModToApply = scannedWithGadgets ? calcMulti(fleetInst) : totalInstMod;
+            let finalInst = Math.max(0, inputInst * (1 + instModToApply / 100));
 
             const iStatus = document.getElementById('crack-inst-status');
             document.getElementById('crack-inst-final').innerText = "Final Instability: " + Math.round(finalInst).toLocaleString();
