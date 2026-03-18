@@ -6,7 +6,6 @@
     <title>MineCalc | Mining Loadout Calculator</title>
     <style>
         :root {
-            /* Grey and Yellow Theme */
             --bg-color: #1a1c22;
             --panel-bg: #252830;
             --text-main: #f0f0f0;
@@ -49,9 +48,7 @@
         }
 
         @media (max-width: 900px) {
-            .setups-grid {
-                grid-template-columns: 1fr;
-            }
+            .setups-grid { grid-template-columns: 1fr; }
         }
 
         .setup-card {
@@ -62,7 +59,49 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             display: flex;
             flex-direction: column;
+            transition: opacity 0.3s, border-color 0.3s;
         }
+
+        .setup-card.off {
+            opacity: 0.5;
+            border-color: #551a1a;
+        }
+
+        /* --- OPERATOR TOGGLE CSS --- */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .card-header h3 { margin: 0; }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #444;
+            transition: .4s;
+            border-radius: 22px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; width: 16px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--good-stat); }
+        input:checked + .slider:before { transform: translateX(22px); }
 
         /* --- CUSTOM SELECT DROPDOWN CSS --- */
         .custom-select {
@@ -75,31 +114,21 @@
             user-select: none;
             transition: border-color 0.2s;
         }
-        .custom-select.open {
-            border-color: var(--accent);
-        }
-        .custom-select.disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
+        .custom-select.open { border-color: var(--accent); }
+        .custom-select.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
         .cs-display {
             padding: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             color: var(--text-main);
+            font-size: 0.9em;
         }
-        .cs-display::after {
-            content: '▼';
-            font-size: 0.7em;
-            color: var(--text-muted);
-        }
+        .cs-display::after { content: '▼'; font-size: 0.7em; color: var(--text-muted); }
         .cs-options {
             position: absolute;
             top: calc(100% + 5px);
-            left: 0;
-            right: 0;
+            left: 0; right: 0;
             background-color: var(--bg-color);
             border: 1px solid var(--accent);
             border-radius: 4px;
@@ -111,65 +140,44 @@
         }
         .cs-optgroup {
             padding: 8px 10px;
-            font-size: 0.8em;
+            font-size: 0.75em;
             color: var(--bg-color);
             background-color: var(--accent);
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
         .cs-option {
             padding: 10px 15px;
             color: var(--text-main);
+            font-size: 0.9em;
             transition: background-color 0.2s, color 0.2s;
         }
-        .cs-option:hover {
-            background-color: var(--panel-bg);
-            color: var(--accent);
-        }
-        
-        .cs-options::-webkit-scrollbar { width: 8px; }
-        .cs-options::-webkit-scrollbar-track { background: var(--bg-color); }
-        .cs-options::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-        .cs-options::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        .cs-option:hover { background-color: var(--panel-bg); color: var(--accent); }
 
-        /* --- TOOLTIP HOVER CSS --- */
+        /* --- PREVIEW TOOLTIP CSS --- */
         .item-preview-tooltip {
             position: fixed;
             background-color: var(--bg-color);
-            backdrop-filter: blur(4px);
             border: 1px solid var(--accent);
             border-radius: 8px;
             padding: 15px;
             color: var(--text-main);
-            pointer-events: none; /* Prevents tooltip from blocking the mouse */
+            pointer-events: none;
             z-index: 9999;
             display: none;
             box-shadow: 0 8px 16px rgba(0,0,0,0.8);
             min-width: 240px;
         }
         .item-preview-tooltip h4 {
-            margin: 0 0 12px 0;
+            margin: 0 0 10px 0;
             color: var(--accent);
-            font-size: 1.1em;
+            font-size: 1em;
             border-bottom: 1px solid var(--border);
-            padding-bottom: 8px;
+            padding-bottom: 5px;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
-        .preview-stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 0.95em;
-            font-weight: bold;
-        }
-        .preview-label {
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-size: 0.85em;
-            letter-spacing: 0.5px;
-        }
+        .preview-stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.9em; font-weight: bold; }
+        .preview-label { color: var(--text-muted); text-transform: uppercase; font-size: 0.8em; }
 
         .operator-results {
             margin-top: auto; 
@@ -178,25 +186,11 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px 10px;
-            align-items: center;
         }
 
-        .local-stat {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .local-stat .label {
-            color: var(--text-muted); 
-            font-size: 0.75em; 
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-
-        .local-stat .value {
-            font-size: 1.2em;
-            font-weight: bold;
-        }
+        .local-stat { display: flex; flex-direction: column; }
+        .local-stat .label { color: var(--text-muted); font-size: 0.7em; text-transform: uppercase; font-weight: bold; }
+        .local-stat .value { font-size: 1.1em; font-weight: bold; }
 
         .global-card {
             background-color: var(--panel-bg);
@@ -204,159 +198,46 @@
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             display: flex;
             align-items: center;
             gap: 20px;
         }
-
         .global-card h3 { margin: 0; }
 
-        .form-group {
-            margin-bottom: 15px;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-
-        .global-card .form-group {
-            margin-bottom: 0;
-        }
-
-        label {
-            font-size: 0.9em;
-            margin-bottom: 5px;
-            color: var(--text-muted);
-            font-weight: bold;
-        }
+        .form-group { margin-bottom: 12px; display: flex; flex-direction: column; flex-grow: 1; }
+        label { font-size: 0.85em; margin-bottom: 3px; color: var(--text-muted); font-weight: bold; }
 
         .results-panel {
             background-color: var(--panel-bg);
             border: 2px solid var(--border);
             border-radius: 8px;
             padding: 25px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             margin-bottom: 30px;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
         }
 
         .stat-box {
             background-color: var(--bg-color);
-            padding: 15px;
+            padding: 12px;
             border-radius: 6px;
             border-left: 4px solid var(--accent);
             display: flex;
             flex-direction: column;
             justify-content: center;
-            position: relative;
         }
 
-        .stat-title {
-            font-size: 0.85em;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
+        .stat-title { font-size: 0.8em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; font-weight: bold; }
+        .stat-value { font-size: 1.4em; font-weight: bold; }
 
-        .stat-value {
-            font-size: 1.6em;
-            font-weight: bold;
-            transition: color 0.3s ease;
-        }
-
-        footer {
-            flex-shrink: 0;
-            background-color: var(--panel-bg);
-            border-top: 2px solid var(--border);
-            padding: 15px 0;
-            margin-top: auto;
-            width: 100%;
-        }
-
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .tooltip-text {
-            visibility: hidden;
-            width: 220px;
-            background-color: #1a1a1a;
-            color: #d1d5db;
-            text-align: center;
-            border: 1px solid var(--accent);
-            border-radius: 6px;
-            padding: 10px;
-            position: absolute;
-            z-index: 10;
-            bottom: 110%;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            transition: opacity 0.3s, visibility 0.3s;
-            font-size: 0.85em;
-            font-weight: normal;
-            line-height: 1.4;
-            pointer-events: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
-        }
-
-        .tooltip-text::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -6px;
-            border-width: 6px;
-            border-style: solid;
-            border-color: var(--accent) transparent transparent transparent;
-        }
-
-        .has-tooltip:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
-
-
-        .rsi-logo { width: 32px; height: 32px; }
-
-        .made-by {
-            font-size: 14px;
-            color: #63768f; 
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .pipe { color: var(--text-muted); }
-
-        .github-link {
-            font-size: 14px;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        .github-link:hover { color: #ffda47; }
-
-        #loading {
-            text-align: center;
-            padding: 50px;
-            font-size: 1.5em;
-            color: var(--accent);
-        }
-
+        footer { background-color: var(--panel-bg); border-top: 2px solid var(--border); padding: 15px 0; margin-top: auto; width: 100%; }
+        .footer-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .github-link { font-size: 14px; color: var(--accent); text-transform: uppercase; text-decoration: none; }
+        #loading { text-align: center; padding: 50px; font-size: 1.5em; color: var(--accent); }
         #app-content { display: none; }
     </style>
 </head>
@@ -367,8 +248,7 @@
 <div id="app-content" class="container">
     <h1>MineCalc <span style="font-size: 0.5em; color: var(--text-muted);">| Loadout Calculator</span></h1>
     
-    <div class="setups-grid" id="setups-container">
-        </div>
+    <div class="setups-grid" id="setups-container"></div>
 
     <div class="global-card">
         <h3>Global Gadget</h3>
@@ -376,8 +256,7 @@
             <label>Deployed on Rock</label>
             <div class="custom-select" id="cs-global-gadget" data-value="0" onclick="toggleCS(this)">
                 <div class="cs-display">None</div>
-                <div class="cs-options">
-                    </div>
+                <div class="cs-options"></div>
             </div>
         </div>
     </div>
@@ -401,10 +280,9 @@
                 <div class="stat-title">Instability Mod</div>
                 <div class="stat-value" id="res-instability">0%</div>
             </div>
-            <div class="stat-box has-tooltip">
+            <div class="stat-box">
                 <div class="stat-title">Opt. Window Mod</div>
                 <div class="stat-value" id="res-opt-win">0%</div>
-                <span class="tooltip-text">Regardless of how many modifiers you stack, the Optimal Charge Window is hard-capped at 50% of the total window in-game.</span>
             </div>
             <div class="stat-box">
                 <div class="stat-title">Opt. Charge Rate</div>
@@ -428,7 +306,6 @@
 
 <footer>
     <div class="footer-content">
-        <img src="https://support.robertsspaceindustries.com/hc/article_attachments/360021770294" alt="RSI Logo" class="rsi-logo">
         <span class="made-by">MADE BY ITSS_ILLY <span class="pipe">|</span></span>
         <a href="https://github.com/itssilly4u/itssilly4u.github.io" class="github-link" target="_blank" rel="noopener">GITHUB</a>
     </div>
@@ -436,480 +313,240 @@
 
 <script>
     const NUM_SETUPS = 3; 
+    let lasers = [], modules = [], gadgets = [];
 
-    let lasers = [];
-    let modules = [];
-    let gadgets = [];
-
-    // Setup Global Hover Tooltip for Previewing
-    const tooltipEl = document.createElement('div');
-    tooltipEl.className = 'item-preview-tooltip';
-    document.body.appendChild(tooltipEl);
+    const tooltipEl = document.querySelector('.item-preview-tooltip') || document.createElement('div');
+    if (!tooltipEl.parentElement) {
+        tooltipEl.className = 'item-preview-tooltip';
+        document.body.appendChild(tooltipEl);
+    }
 
     document.addEventListener('mousemove', (e) => {
         if (tooltipEl.style.display === 'block') {
-            let x = e.clientX + 15;
-            let y = e.clientY + 15;
-            const rect = tooltipEl.getBoundingClientRect();
-            
-            // Boundary checks to keep it on screen
-            if (x + rect.width > window.innerWidth) x = e.clientX - rect.width - 15;
-            if (y + rect.height > window.innerHeight) y = e.clientY - rect.height - 15;
-            
-            tooltipEl.style.left = x + 'px';
-            tooltipEl.style.top = y + 'px';
+            tooltipEl.style.left = (e.clientX + 15) + 'px';
+            tooltipEl.style.top = (e.clientY + 15) + 'px';
         }
     });
 
-    window.showPreview = function(index, type) {
+    window.showPreview = (index, type) => {
         let item = type === 'laser' ? lasers[index] : (type === 'module' ? modules[index] : gadgets[index]);
         tooltipEl.innerHTML = `<h4>${item.name}</h4>${formatStatPreview(item, type)}`;
         tooltipEl.style.display = 'block';
     }
+    window.hidePreview = () => tooltipEl.style.display = 'none';
 
-    window.hidePreview = function() {
-        tooltipEl.style.display = 'none';
-    }
-
-    // Logic to only show non-zero modifiers
     function formatStatPreview(item, type) {
-        if (!item || item.name === "None") return `<div style="color:var(--text-muted); font-style:italic;">No stat modifiers applied.</div>`;
+        if (!item || item.name === "None") return `<div style="color:var(--text-muted);">No modifiers</div>`;
         let html = '';
-        
-        const addStat = (label, val, suffix, invertGoodBad = false, isBaseStat = false) => {
-            if (val === 0 || val === "0" || val === "" || val === undefined) return;
-            let displayVal = parseFloat(val).toFixed(1).replace('.0', '');
-            if (!isBaseStat && val > 0) displayVal = '+' + displayVal;
-            displayVal += suffix;
-            
-            let colorClass = '';
-            if (!isBaseStat) {
-                let isPositive = val > 0;
-                let isGood = invertGoodBad ? !isPositive : isPositive;
-                colorClass = isGood ? 'style="color: var(--good-stat);"' : 'style="color: var(--bad-stat);"';
-            }
-            
-            html += `<div class="preview-stat-row">
-                        <span class="preview-label">${label}</span>
-                        <span ${colorClass}>${displayVal}</span>
-                     </div>`;
+        const addStat = (label, val, suffix, inv = false, base = false) => {
+            if (!val) return;
+            let d = parseFloat(val).toFixed(1).replace('.0','');
+            if (!base && val > 0) d = '+' + d;
+            let c = base ? '' : ((val > 0 ? !inv : inv) ? 'style="color:var(--good-stat);"' : 'style="color:var(--bad-stat);"');
+            html += `<div class="preview-stat-row"><span class="preview-label">${label}</span><span ${c}>${d}${suffix}</span></div>`;
         };
 
-        // Format specific logic for items
         if (type === 'laser') {
-            if (item.powerMax > 0) html += `<div class="preview-stat-row"><span class="preview-label">Power</span><span>${Math.round(item.powerMin)} - ${Math.round(item.powerMax)}</span></div>`;
+            html += `<div class="preview-stat-row"><span class="preview-label">Power</span><span>${Math.round(item.powerMin)}-${Math.round(item.powerMax)}</span></div>`;
             addStat('Extraction', item.extraction, '', false, true);
-            addStat('Opt. Range', item.optRange, 'm', false, true);
-            addStat('Max Range', item.maxRange, 'm', false, true);
-            addStat('Module Slots', item.slots, '', false, true);
-            html += `<hr style="border-color: var(--border); margin: 10px 0;">`;
-        } else {
-            addStat('Power Mod', item.power, '%');
-            addStat('Extraction Mod', item.extraction, '%');
+        } else if (type === 'module') {
+            addStat('Uses', item.uses, '', false, true);
+            addStat('Power', item.power, '%');
+            addStat('Extraction', item.extraction, '%');
         }
 
-        // Shared Modifiers
-        addStat('Inert Filter', item.inert, '%', true); // Neg is good
-        addStat('Resistance', item.resistance, '%', true); // Neg is good
-        addStat('Instability', item.instability, '%', true); // Neg is good
-        addStat('Opt. Window', item.optimalWin, '%'); // Pos is good
-        addStat('Opt. Charge Rate', item.optCharge, '%'); // Pos is good
-        addStat('Overcharge Rate', item.overcharge, '%', true); // Neg is good
-        addStat('Shatter Damage', item.shatter, '%', true); // Neg is good
-        addStat('Cluster Modifier', item.cluster, '%'); // Pos is good
-
-        if (html === '' || html === `<hr style="border-color: var(--border); margin: 10px 0;">`) {
-             return `<div style="color:var(--text-muted); font-style:italic;">No additional modifiers</div>`;
-        }
+        addStat('Inert Filter', item.inert, '%', true);
+        addStat('Resistance', item.resistance, '%', true);
+        addStat('Instability', item.instability, '%', true);
+        addStat('Opt. Window', item.optimalWin, '%');
+        addStat('Opt. Charge', item.optCharge, '%');
+        addStat('Overcharge', item.overcharge, '%', true);
+        addStat('Shatter', item.shatter, '%', true);
+        addStat('Cluster', item.cluster, '%');
         return html;
     }
 
-    // Helper to safely parse strings to floats
-    function safeFloat(val, def = 0) {
-        if (val === "" || val === null || val === undefined) return def;
-        if (typeof val === 'string') val = val.replace('%', '').replace(',', '');
-        let parsed = parseFloat(val);
-        return isNaN(parsed) ? def : parsed;
+    function safeFloat(v, d=0) {
+        if (!v) return d;
+        let f = parseFloat(v.toString().replace(/[% ,]/g, ''));
+        return isNaN(f) ? d : f;
     }
 
-    // Load and Parse the UEX Data
     async function loadData() {
         try {
-            const [lasersRes, modulesRes, gadgetsRes] = await Promise.all([
-                fetch('UEX - mining-laser-heads.json'),
-                fetch('UEX - mining-modules.json'),
-                fetch('UEX - gadgets.json')
-            ]);
+            const [lR, mR, gR] = await Promise.all([fetch('UEX - mining-laser-heads.json'), fetch('UEX - mining-modules.json'), fetch('UEX - gadgets.json')]);
+            const rL = await lR.json(), rM = await mR.json(), rG = await gR.json();
 
-            const rawLasers = await lasersRes.json();
-            const rawModules = await modulesRes.json();
-            const rawGadgets = await gadgetsRes.json();
-
-            lasers.push({ name: "None", size: 0, slots: 0, powerMin: 0, powerMax: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0, cluster: 0, optRange: 0, maxRange: 0 });
-            rawLasers.forEach(l => {
-                let name = `${l['Item']} (S${l['Size'] || '?'})`;
-                let pm = l['Mining Laser Power'] || '';
-                let pmin = 0, pmax = 0;
-                
-                if (typeof pm === 'string' && pm.includes('-')) {
-                    pmin = safeFloat(pm.split('-')[0]);
-                    pmax = safeFloat(pm.split('-')[1]);
-                } else {
-                    pmax = safeFloat(pm);
-                    pmin = pmax * (safeFloat(l['Throttle min']) / 100);
-                }
-
-                let ext = safeFloat(l['Extraction Laser Power']);
-                if (ext === 0) ext = safeFloat(l['Extraction Throughput']);
-
-                lasers.push({ 
-                    name: name, size: safeFloat(l['Size']), slots: safeFloat(l['Module Slots']), powerMin: pmin, powerMax: pmax, 
-                    extraction: ext, inert: safeFloat(l['Inert Material Level']), resistance: safeFloat(l['Resistance']), 
-                    instability: safeFloat(l['Laser Instability']) || safeFloat(l['Instability']), optimalWin: safeFloat(l['Optimal Charge Window Size']), 
-                    optCharge: safeFloat(l['Optimal Charge Window Rate']), overcharge: safeFloat(l['Catastrophic Charge Rate']), 
-                    shatter: safeFloat(l['Shatter Damage']), cluster: 0, optRange: safeFloat(l['Optimal Range']), maxRange: safeFloat(l['Maximum Range'])    
+            lasers.push({ name: "None", slots: 0, powerMin: 0, powerMax: 0, extraction: 0 });
+            rL.forEach(l => {
+                let pm = l['Mining Laser Power'] || '', pmin = 0, pmax = 0;
+                if (pm.includes('-')) { pmin = safeFloat(pm.split('-')[0]); pmax = safeFloat(pm.split('-')[1]); }
+                else { pmax = safeFloat(pm); pmin = pmax * (safeFloat(l['Throttle min'])/100); }
+                lasers.push({
+                    name: `${l.Item} (S${l.Size})`, slots: safeFloat(l['Module Slots']), powerMin: pmin, powerMax: pmax, extraction: safeFloat(l['Extraction Laser Power'] || l['Extraction Throughput']),
+                    inert: safeFloat(l['Inert Material Level']), resistance: safeFloat(l['Resistance']), instability: safeFloat(l['Laser Instability'] || l.Instability), 
+                    optimalWin: safeFloat(l['Optimal Charge Window Size']), optCharge: safeFloat(l['Optimal Charge Window Rate']), overcharge: safeFloat(l['Catastrophic Charge Rate']), 
+                    shatter: safeFloat(l['Shatter Damage']), optRange: safeFloat(l['Optimal Range']), maxRange: safeFloat(l['Maximum Range'])
                 });
             });
 
-            modules.push({ name: "None", power: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0, cluster: 0 });
-            rawModules.forEach(m => {
-                let rawP = safeFloat(m['Mining Laser Power'], 100);
-                if (rawP === 0) rawP = 100;
-                let rawE = safeFloat(m['Extraction Laser Power'], 100);
-                if (rawE === 0) rawE = 100;
-
-                modules.push({ 
-                    name: m['Item'], power: rawP - 100, extraction: rawE - 100, inert: safeFloat(m['Inert Material Level']), 
-                    resistance: safeFloat(m['Resistance']), instability: safeFloat(m['Laser Instability']), 
-                    optimalWin: safeFloat(m['Optimal Charge Window Size']), optCharge: safeFloat(m['Optimal Charge Rate']), 
-                    overcharge: safeFloat(m['Catastrophic Charge Rate']), shatter: safeFloat(m['Shatter Damage']), cluster: 0
+            modules.push({ name: "None", power: 0, extraction: 0, uses: 0 });
+            rM.forEach(m => {
+                let u = safeFloat(m.Uses);
+                modules.push({
+                    name: `${m.Item} ${u > 0 ? '(Active)' : '(Passive)'}`, power: safeFloat(m['Mining Laser Power'], 100)-100, extraction: safeFloat(m['Extraction Laser Power'], 100)-100, 
+                    uses: u, inert: safeFloat(m['Inert Material Level']), resistance: safeFloat(m['Resistance']), instability: safeFloat(m['Laser Instability']), 
+                    optimalWin: safeFloat(m['Optimal Charge Window Size']), optCharge: safeFloat(m['Optimal Charge Rate']), overcharge: safeFloat(m['Catastrophic Charge Rate']), shatter: safeFloat(m['Shatter Damage'])
                 });
             });
 
-            gadgets.push({ name: "None", power: 0, extraction: 0, inert: 0, resistance: 0, instability: 0, optimalWin: 0, optCharge: 0, overcharge: 0, shatter: 0, cluster: 0 });
-            rawGadgets.forEach(g => {
-                gadgets.push({ 
-                    name: g['Item'], power: 0, extraction: 0, inert: safeFloat(g['Inert Material Level']), resistance: safeFloat(g['Resistance']), 
-                    instability: safeFloat(g['Laser Instability']) || safeFloat(g['Instability']), optimalWin: safeFloat(g['Optimal Charge Window Size']), 
-                    optCharge: safeFloat(g['Optimal Charge Window Rate']), overcharge: safeFloat(g['Catastrophic Charge Rate']), 
-                    shatter: safeFloat(g['Shatter Damage']), cluster: safeFloat(g['Cluster Modifier']) 
+            gadgets.push({ name: "None" });
+            rG.forEach(g => {
+                gadgets.push({
+                    name: g.Item, inert: safeFloat(g['Inert Material Level']), resistance: safeFloat(g['Resistance']), instability: safeFloat(g['Laser Instability'] || g.Instability), 
+                    optimalWin: safeFloat(g['Optimal Charge Window Size']), optCharge: safeFloat(g['Optimal Charge Window Rate']), overcharge: safeFloat(g['Catastrophic Charge Rate']), 
+                    shatter: safeFloat(g['Shatter Damage']), cluster: safeFloat(g['Cluster Modifier'])
                 });
             });
 
             document.getElementById('loading').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
             initUI();
-
-        } catch (error) {
-            document.getElementById('loading').innerText = "Error loading UEX data files! Make sure the 3 JSON files are in the same folder, and that you are running this on a Web Server (like GitHub Pages or VS Code Live Server).";
-            document.getElementById('loading').style.color = "var(--bad-stat)";
-            console.error(error);
-        }
-    }
-
-    // Custom Dropdown Builder
-    function buildLaserCSOptions() {
-        let html = '';
-        let s2 = [], s1 = [], s0 = [], others = [];
-        
-        lasers.forEach((item, index) => {
-            if (item.name === "None") return;
-            const opt = `<div class="cs-option" data-val="${index}" onmouseenter="showPreview(${index}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${item.name}</div>`;
-            if (item.name.includes("(S2)")) s2.push(opt);
-            else if (item.name.includes("(S1)")) s1.push(opt);
-            else if (item.name.includes("(S0)")) s0.push(opt);
-            else others.push(opt);
-        });
-        
-        html += `<div class="cs-option" data-val="0" onmouseenter="showPreview(0, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">None</div>`;
-        if (s2.length > 0) html += `<div class="cs-optgroup">Size 2 Lasers</div>${s2.join('')}`;
-        if (s1.length > 0) html += `<div class="cs-optgroup">Size 1 Lasers</div>${s1.join('')}`;
-        if (s0.length > 0) html += `<div class="cs-optgroup">Size 0 Lasers</div>${s0.join('')}`;
-        if (others.length > 0) html += `<div class="cs-optgroup">Uncategorized</div>${others.join('')}`;
-        
-        return html;
-    }
-
-    function buildModuleCSOptions(typeStr) {
-        let dataArray = typeStr === 'module' ? modules : gadgets;
-        const mapped = dataArray.map((item, index) => ({ item, index }));
-        mapped.sort((a, b) => {
-            if (a.item.name === "None") return -1;
-            if (b.item.name === "None") return 1;
-            return a.item.name.localeCompare(b.item.name);
-        });
-        
-        return mapped.map(obj => `<div class="cs-option" data-val="${obj.index}" onmouseenter="showPreview(${obj.index}, '${typeStr}')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, '${typeStr}')">${obj.item.name}</div>`).join('');
+        } catch (e) { console.error(e); }
     }
 
     function toggleCS(container) {
         if (container.classList.contains('disabled')) return;
-        const wasOpen = container.classList.contains('open');
-        
-        // Close all others
-        document.querySelectorAll('.custom-select').forEach(el => {
-            el.classList.remove('open');
-            el.querySelector('.cs-options').style.display = 'none';
-        });
-        
-        if (!wasOpen) {
-            container.classList.add('open');
-            container.querySelector('.cs-options').style.display = 'block';
-        }
+        let wasOpen = container.classList.contains('open');
+        document.querySelectorAll('.custom-select').forEach(el => { el.classList.remove('open'); el.querySelector('.cs-options').style.display = 'none'; });
+        if (!wasOpen) { container.classList.add('open'); container.querySelector('.cs-options').style.display = 'block'; }
     }
 
-    // Handles the actual selection event
-    function selectCSOption(e, optionEl, type) {
+    function selectCSOption(e, el, type) {
         e.stopPropagation();
-        const container = optionEl.closest('.custom-select');
-        container.dataset.value = optionEl.dataset.val;
-        container.querySelector('.cs-display').innerText = optionEl.innerText;
-        container.querySelector('.cs-options').style.display = 'none';
-        container.classList.remove('open');
+        let c = el.closest('.custom-select');
+        c.dataset.value = el.dataset.val;
+        c.querySelector('.cs-display').innerText = el.innerText;
+        c.classList.remove('open');
+        c.querySelector('.cs-options').style.display = 'none';
         hidePreview();
-
-        if (type === 'laser') {
-            const match = container.id.match(/cs-laser-(\d+)/);
-            if (match) handleLaserChange(match[1]);
-        } else {
-            calculate();
-        }
+        if (type === 'laser') handleLaserChange(c.id.split('-').pop());
+        else calculate();
     }
-
-    // Close Dropdowns if you click anywhere else on the page
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.custom-select')) {
-            document.querySelectorAll('.custom-select.open').forEach(el => {
-                el.classList.remove('open');
-                el.querySelector('.cs-options').style.display = 'none';
-            });
-        }
-    });
 
     function initUI() {
-        const laserHtml = buildLaserCSOptions();
-        const moduleHtml = buildModuleCSOptions('module');
-        const gadgetHtml = buildModuleCSOptions('gadget');
+        const lH = lasers.map((l, i) => `<div class="cs-option" data-val="${i}" onmouseenter="showPreview(${i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${l.name}</div>`).join('');
+        const mH = modules.map((m, i) => `<div class="cs-option" data-val="${i}" onmouseenter="showPreview(${i}, 'module')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'module')">${m.name}</div>`).join('');
+        const gH = gadgets.map((g, i) => `<div class="cs-option" data-val="${i}" onmouseenter="showPreview(${i}, 'gadget')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'gadget')">${g.name}</div>`).join('');
 
         const container = document.getElementById('setups-container');
         for (let i = 0; i < NUM_SETUPS; i++) {
             const card = document.createElement('div');
             card.className = 'setup-card';
-            
+            card.id = `card-${i}`;
             card.innerHTML = `
-                <h3>Operator ${i + 1}</h3>
-                <div class="form-group">
-                    <label>Laser Head</label>
-                    <div class="custom-select" id="cs-laser-${i}" data-value="0" onclick="toggleCS(this)">
-                        <div class="cs-display">None</div>
-                        <div class="cs-options">${laserHtml}</div>
-                    </div>
+                <div class="card-header">
+                    <h3>Operator ${i + 1}</h3>
+                    <label class="switch"><input type="checkbox" checked onchange="toggleOperator(${i}, this.checked)"><span class="slider"></span></label>
                 </div>
-                <div class="form-group">
-                    <label>Module 1</label>
-                    <div class="custom-select disabled" id="cs-mod1-${i}" data-value="0" onclick="toggleCS(this)">
-                        <div class="cs-display">None</div>
-                        <div class="cs-options">${moduleHtml}</div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Module 2</label>
-                    <div class="custom-select disabled" id="cs-mod2-${i}" data-value="0" onclick="toggleCS(this)">
-                        <div class="cs-display">None</div>
-                        <div class="cs-options">${moduleHtml}</div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Module 3</label>
-                    <div class="custom-select disabled" id="cs-mod3-${i}" data-value="0" onclick="toggleCS(this)">
-                        <div class="cs-display">None</div>
-                        <div class="cs-options">${moduleHtml}</div>
-                    </div>
-                </div>
+                <div class="form-group"><label>Laser Head</label><div class="custom-select" id="cs-laser-${i}" data-value="0" onclick="toggleCS(this)"><div class="cs-display">None</div><div class="cs-options">${lH}</div></div></div>
+                ${[1,2,3].map(m => `<div class="form-group"><label>Module ${m}</label><div class="custom-select disabled" id="cs-mod${m}-${i}" data-value="0" onclick="toggleCS(this)"><div class="cs-display">None</div><div class="cs-options">${mH}</div></div></div>`).join('')}
                 <div class="operator-results">
-                    <div class="local-stat">
-                        <span class="label">Local Ext.</span>
-                        <span class="value" id="op-ext-${i}">0.0</span>
-                    </div>
-                    <div class="local-stat">
-                        <span class="label">Local Inert</span>
-                        <span class="value" id="op-inert-${i}">0%</span>
-                    </div>
-                    <div class="local-stat">
-                        <span class="label">Opt. Range</span>
-                        <span class="value" id="op-optrange-${i}" style="color: var(--text-main);">0m</span>
-                    </div>
-                    <div class="local-stat">
-                        <span class="label">Max Range</span>
-                        <span class="value" id="op-maxrange-${i}" style="color: var(--text-main);">0m</span>
-                    </div>
-                </div>
-            `;
+                    <div class="local-stat"><span class="label">Local Ext.</span><span class="value" id="op-ext-${i}">0.0</span></div>
+                    <div class="local-stat"><span class="label">Local Inert</span><span class="value" id="op-inert-${i}">0%</span></div>
+                    <div class="local-stat"><span class="label">Opt. Range</span><span class="value" id="op-optrange-${i}">0m</span></div>
+                    <div class="local-stat"><span class="label">Max Range</span><span class="value" id="op-maxrange-${i}">0m</span></div>
+                </div>`;
             container.appendChild(card);
         }
-
-        const globalGadgetEl = document.getElementById('cs-global-gadget');
-        if(globalGadgetEl) globalGadgetEl.querySelector('.cs-options').innerHTML = gadgetHtml;
-
-        calculate(); 
+        document.getElementById('cs-global-gadget').querySelector('.cs-options').innerHTML = gH;
     }
 
-    function handleLaserChange(setupIndex) {
-        const laserIndex = parseInt(document.getElementById(`cs-laser-${setupIndex}`).dataset.value);
-        const selectedLaser = lasers[laserIndex];
-        
-        for (let m = 1; m <= 3; m++) {
-            const modSelect = document.getElementById(`cs-mod${m}-${setupIndex}`);
-            const slots = selectedLaser.slots || 0;
-            if (m <= slots) {
-                modSelect.classList.remove('disabled');
-            } else {
-                modSelect.dataset.value = 0; 
-                modSelect.querySelector('.cs-display').innerText = 'None';
-                modSelect.classList.add('disabled');
-            }
+    function toggleOperator(i, state) {
+        document.getElementById(`card-${i}`).classList.toggle('off', !state);
+        calculate();
+    }
+
+    function handleLaserChange(i) {
+        let l = lasers[document.getElementById(`cs-laser-${i}`).dataset.value];
+        for (let m=1; m<=3; m++) {
+            let el = document.getElementById(`cs-mod${m}-${i}`);
+            if (m <= l.slots) el.classList.remove('disabled');
+            else { el.classList.add('disabled'); el.dataset.value = 0; el.querySelector('.cs-display').innerText = 'None'; }
         }
         calculate();
     }
 
-    function calcMultiplicativeMod(valuesArray) {
-        if (valuesArray.length === 0) return 0;
-        let product = 1;
-        valuesArray.forEach(val => { product *= (1 + (val / 100)); });
-        return ((product - 1) * 100);
+    function calcMulti(arr) {
+        if (!arr.length) return 0;
+        let p = 1;
+        arr.forEach(v => p *= (1 + (v/100)));
+        return (p - 1) * 100;
     }
 
-    function updateColoredStat(elementId, value, isNegativeGood, suffix = '%') {
-        const el = document.getElementById(elementId);
+    function updateStat(id, val, inv, suf='%') {
+        let el = document.getElementById(id);
         if (!el) return;
-        
-        let formattedValue = value.toFixed(1);
-        if (value > 0) formattedValue = '+' + formattedValue;
-        el.innerText = (value === 0 ? '0' : formattedValue) + suffix;
-
-        if (value === 0) {
-            el.style.color = 'var(--text-main)'; 
-        } else if (isNegativeGood) {
-            el.style.color = value < 0 ? 'var(--good-stat)' : 'var(--bad-stat)';
-        } else {
-            el.style.color = value > 0 ? 'var(--good-stat)' : 'var(--bad-stat)';
-        }
+        let d = val.toFixed(1).replace('.0', '');
+        el.innerText = (val === 0 ? '0' : (val > 0 ? '+' + d : d)) + suf;
+        el.style.color = val === 0 ? 'var(--text-main)' : ((val > 0 ? !inv : inv) ? 'var(--good-stat)' : 'var(--bad-stat)');
     }
 
     function calculate() {
-        let totalMaxPower = 0;
-        let totalMinPower = 0;
+        let tMax = 0, tMin = 0, res = [], inst = [], win = [], chg = [], over = [], shat = [], clust = [];
 
-        let resistanceMods = [];
-        let instabilityMods = [];
-        let optWinMods = [];
-        let optChargeMods = [];
-        let overchargeMods = [];
-        let shatterMods = [];
-        let clusterMods = [];
-
-        for (let i = 0; i < NUM_SETUPS; i++) {
-            const lIndex = parseInt(document.getElementById(`cs-laser-${i}`).dataset.value);
-            const laser = lasers[lIndex];
-            
-            let operatorInertMods = [];
-            let opExtModifierPercent = 0;
-            let opPowerModifierPercent = 0;
-
-            if (laser && laser.name !== "None") {
-                let activeEquips = [];
-                for (let m = 1; m <= 3; m++) {
-                    const modSelect = document.getElementById(`cs-mod${m}-${i}`);
-                    if (!modSelect.classList.contains('disabled')) {
-                        activeEquips.push(modules[parseInt(modSelect.dataset.value)]);
-                    }
-                }
-
-                if (laser.inert) operatorInertMods.push(laser.inert); 
-
-                activeEquips.forEach(eq => {
-                    if (eq && eq.name !== "None") {
-                        if (eq.power) opPowerModifierPercent += eq.power;
-                        if (eq.extraction) opExtModifierPercent += eq.extraction;
-                        if (eq.inert) operatorInertMods.push(eq.inert);
-
-                        if (eq.resistance) resistanceMods.push(eq.resistance);
-                        if (eq.instability) instabilityMods.push(eq.instability);
-                        if (eq.optimalWin) optWinMods.push(eq.optimalWin);
-                        if (eq.optCharge) optChargeMods.push(eq.optCharge);
-                        if (eq.overcharge) overchargeMods.push(eq.overcharge);
-                        if (eq.shatter) shatterMods.push(eq.shatter);
-                    }
-                });
-
-                let actualMaxPower = (laser.powerMax || 0) * (1 + (opPowerModifierPercent / 100));
-                let actualMinPower = (laser.powerMin || 0) * (1 + (opPowerModifierPercent / 100));
-
-                totalMaxPower += actualMaxPower;
-                totalMinPower += actualMinPower;
-
-                let actualExtraction = (laser.extraction || 0) * (1 + (opExtModifierPercent / 100));
-
-                if (laser.resistance) resistanceMods.push(laser.resistance);
-                if (laser.instability) instabilityMods.push(laser.instability);
-                if (laser.optimalWin) optWinMods.push(laser.optimalWin);
-                if (laser.optCharge) optChargeMods.push(laser.optCharge);
-                if (laser.overcharge) overchargeMods.push(laser.overcharge);
-                if (laser.shatter) shatterMods.push(laser.shatter);
-
-                document.getElementById(`op-ext-${i}`).innerText = actualExtraction.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
-                
-                let optRange = laser.optRange || 0;
-                let maxRange = laser.maxRange || 0;
-                document.getElementById(`op-optrange-${i}`).innerText = optRange > 0 ? optRange + 'm' : '0m';
-                document.getElementById(`op-maxrange-${i}`).innerText = maxRange > 0 ? maxRange + 'm' : '0m';
-
-            } else {
+        for (let i=0; i<NUM_SETUPS; i++) {
+            if (document.getElementById(`card-${i}`).classList.contains('off')) {
                 document.getElementById(`op-ext-${i}`).innerText = '0.0';
-                document.getElementById(`op-optrange-${i}`).innerText = '0m';
-                document.getElementById(`op-maxrange-${i}`).innerText = '0m';
+                document.getElementById(`op-inert-${i}`).innerText = '0%';
+                continue;
             }
+            let l = lasers[document.getElementById(`cs-laser-${i}`).dataset.value];
+            if (!l || l.name === "None") continue;
+
+            let mods = [1,2,3].map(m => modules[document.getElementById(`cs-mod${m}-${i}`).dataset.value]);
+            let pMod = 0, eMod = 0, opInert = [l.inert || 0];
             
-            const finalOpInert = calcMultiplicativeMod(operatorInertMods);
-            updateColoredStat(`op-inert-${i}`, finalOpInert, true, '%');
+            mods.forEach(m => {
+                if (!m || m.name === "None") return;
+                pMod += m.power; eMod += m.extraction; opInert.push(m.inert || 0);
+                if (m.resistance) res.push(m.resistance); if (m.instability) inst.push(m.instability);
+                if (m.optimalWin) win.push(m.optimalWin); if (m.optCharge) chg.push(m.optCharge);
+                if (m.overcharge) over.push(m.overcharge); if (m.shatter) shat.push(m.shatter);
+            });
+
+            tMax += l.powerMax * (1 + pMod/100); tMin += l.powerMin * (1 + pMod/100);
+            if (l.resistance) res.push(l.resistance); if (l.instability) inst.push(l.instability);
+            if (l.optimalWin) win.push(l.optimalWin); if (l.optCharge) chg.push(l.optCharge);
+            if (l.overcharge) over.push(l.overcharge); if (l.shatter) shat.push(l.shatter);
+
+            document.getElementById(`op-ext-${i}`).innerText = (l.extraction * (1 + eMod/100)).toFixed(1);
+            updateStat(`op-inert-${i}`, calcMulti(opInert), true);
+            document.getElementById(`op-optrange-${i}`).innerText = (l.optRange || 0) + 'm';
+            document.getElementById(`op-maxrange-${i}`).innerText = (l.maxRange || 0) + 'm';
         }
 
-        const globalGadgetSelect = document.getElementById('cs-global-gadget');
-        if (globalGadgetSelect) {
-            const gadget = gadgets[parseInt(globalGadgetSelect.dataset.value)];
-            if (gadget && gadget.name !== "None") {
-                if (gadget.resistance) resistanceMods.push(gadget.resistance);
-                if (gadget.instability) instabilityMods.push(gadget.instability);
-                if (gadget.optimalWin) optWinMods.push(gadget.optimalWin);
-                if (gadget.optCharge) optChargeMods.push(gadget.optCharge);
-                if (gadget.overcharge) overchargeMods.push(gadget.overcharge);
-                if (gadget.shatter) shatterMods.push(gadget.shatter);
-                if (gadget.cluster) clusterMods.push(gadget.cluster);
-            }
+        let g = gadgets[document.getElementById('cs-global-gadget').dataset.value];
+        if (g && g.name !== "None") {
+            if (g.resistance) res.push(g.resistance); if (g.instability) inst.push(g.instability);
+            if (g.optimalWin) win.push(g.optimalWin); if (g.optCharge) chg.push(g.optCharge);
+            if (g.overcharge) over.push(g.overcharge); if (g.shatter) shat.push(g.shatter);
+            if (g.cluster) clust.push(g.cluster);
         }
 
-        const finalResistance = calcMultiplicativeMod(resistanceMods);
-        const finalInstability = calcMultiplicativeMod(instabilityMods);
-        const finalOptWin = calcMultiplicativeMod(optWinMods);
-        const finalOptCharge = calcMultiplicativeMod(optChargeMods);
-        const finalOvercharge = calcMultiplicativeMod(overchargeMods);
-        const finalShatter = calcMultiplicativeMod(shatterMods);
-        const finalCluster = calcMultiplicativeMod(clusterMods);
-
-        document.getElementById('res-max-power').innerText = Math.round(totalMaxPower).toLocaleString();
-        document.getElementById('res-min-power').innerText = Math.round(totalMinPower).toLocaleString();
-               
-        updateColoredStat('res-resistance', finalResistance, true, '%');       
-        updateColoredStat('res-instability', finalInstability, true, '%');     
-        updateColoredStat('res-opt-win', finalOptWin, false, '%');             
-        updateColoredStat('res-opt-charge', finalOptCharge, false, '%');    
-        updateColoredStat('res-overcharge', finalOvercharge, true, '%');       
-        updateColoredStat('res-shatter', finalShatter, true, '%');             
-        updateColoredStat('res-cluster', finalCluster, false, '%');             
+        document.getElementById('res-max-power').innerText = Math.round(tMax).toLocaleString();
+        document.getElementById('res-min-power').innerText = Math.round(tMin).toLocaleString();
+        updateStat('res-resistance', calcMulti(res), true);
+        updateStat('res-instability', calcMulti(inst), true);
+        updateStat('res-opt-win', calcMulti(win), false);
+        updateStat('res-opt-charge', calcMulti(chg), false);
+        updateStat('res-overcharge', calcMulti(over), true);
+        updateStat('res-shatter', calcMulti(shat), true);
+        updateStat('res-cluster', calcMulti(clust), false);
     }
 
+    window.onclick = (e) => { if (!e.target.closest('.custom-select')) document.querySelectorAll('.custom-select').forEach(el => { el.classList.remove('open'); el.querySelector('.cs-options').style.display='none'; }); };
     window.onload = loadData;
 </script>
-
 </body>
 </html>
