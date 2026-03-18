@@ -69,7 +69,7 @@
         .custom-select { position: relative; width: 100%; background-color: var(--bg-color); border: 1px solid var(--border); border-radius: 4px; cursor: pointer; user-select: none; transition: border-color 0.2s; }
         .custom-select.open { border-color: var(--accent); }
         .custom-select.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
-        .cs-display { padding: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); font-size: 0.9em; }
+        .cs-display { padding: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px;}
         .cs-display::after { content: '▼'; font-size: 0.7em; color: var(--text-muted); }
         .cs-options { position: absolute; top: calc(100% + 5px); left: 0; right: 0; background-color: var(--bg-color); border: 1px solid var(--accent); border-radius: 4px; max-height: 250px; overflow-y: auto; display: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
         .cs-optgroup { padding: 8px 10px; font-size: 0.75em; color: var(--bg-color); background-color: var(--accent); font-weight: bold; text-transform: uppercase; }
