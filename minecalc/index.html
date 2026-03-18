@@ -175,6 +175,55 @@
             display: none; /* Hidden by default */
         }
         
+        /* RockReader Specific Styles */
+        .action-button {
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #1a1c22;
+            background-color: var(--accent, #f2cc0c); 
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+            height: 45px; /* Matches the input height */
+        }
+        
+        .action-button:hover { 
+            background-color: #e6b800; 
+        }
+
+        .results-container { 
+            margin-top: 25px; 
+            border-top: 1px solid var(--border, #3f4551);
+            padding-top: 20px;
+        }
+
+        .match-item {
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border, #3f4551);
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .match-name { 
+            font-weight: bold; 
+            color: #fff; 
+        }
+
+        .match-count { 
+            color: var(--accent, #f2cc0c); 
+            font-size: 0.9em; 
+            text-transform: uppercase; 
+            font-weight: bold;
+        }
+
     </style>
 </head>
 <body>
@@ -258,10 +307,18 @@
         <span class="accordion-icon">▼</span>
     </div>
     <div class="accordion-content">
-        <div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">
-            RockReader Tool configuration coming soon...
+        <div class="cracker-grid">
+            <div class="cracker-input-group" style="flex: 2;">
+                <div class="stat-title">Remote Cluster Signature</div>
+                <input type="number" id="signatureInput" class="cracker-input" placeholder="Example: 9510">
+            </div>
+            <div class="cracker-input-group" style="flex: 1; justify-content: flex-end;">
+                <button class="action-button" onclick="findOres()">Check Matches</button>
+            </div>
         </div>
-        </div>
+
+        <div id="results" class="results-container"></div>
+    </div>
 </div>
 
 <footer>
@@ -419,6 +476,54 @@
                 contentElement.style.display = 'none';
             }
         }
+    
+    // RockReader Logic
+    function findOres() {
+        const inputSignatureStr = document.getElementById('signatureInput').value;
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = "";
+
+        const signature = parseInt(inputSignatureStr);
+        if (isNaN(signature) || signature <= 0) {
+            resultsDiv.innerHTML = "<div style='color:#ff6b6b; text-align:center; padding: 10px;'>❌ Please enter a valid number.</div>";
+            return;
+        }
+
+        let matches = [];
+        // Pulls from your data.js file
+        for (const ore of ores) {
+            if (signature % ore.signature === 0) {
+                const count = signature / ore.signature;
+                matches.push({
+                    name: ore.name,
+                    count: count
+                });
+            }
+        }
+
+        if (matches.length > 0) {
+            resultsDiv.innerHTML = "<div class='stat-title' style='margin-bottom: 12px;'>Possible Matches:</div>" +
+                matches.map(m => `
+                    <div class="match-item">
+                        <span class="match-name">${m.name}</span>
+                        <span class="match-count">${m.count}x node cluster</span>
+                    </div>
+                `).join('');
+        } else {
+            resultsDiv.innerHTML = `
+                <div style='text-align:center; padding: 20px;'>
+                    <div class='stat-title'>No perfect matches found.</div>
+                    <div style='color: #a1a6b0; font-size:0.9rem; margin-top: 5px;'>The initial signature may not be perfectly precise, or it's a mixed cluster.</div>
+                </div>`;
+        }
+    }
+
+    // Allows pressing 'Enter' to check matches
+    document.getElementById('signatureInput').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            findOres();
+        }
+    });
 
     function initUI() {
         let laserOptions = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
