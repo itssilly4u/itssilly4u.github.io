@@ -20,25 +20,13 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column;
             min-height: 100vh;
         }
 
-        h1, h2, h3 { 
-            color: var(--accent); 
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            width: 100%;
-            margin: 0 auto;
-            flex: 1 0 auto;
-        }
+        h1, h2, h3 { color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        .container { max-width: 1200px; width: 100%; margin: 0 auto; flex: 1 0 auto; }
 
         .setups-grid {
             display: grid;
@@ -57,177 +45,63 @@
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
             transition: opacity 0.3s, border-color 0.3s;
         }
 
-        .setup-card.off {
-            opacity: 0.5;
-            border-color: #551a1a;
-        }
+        .setup-card.off { opacity: 0.5; border-color: #551a1a; }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .card-header h3 { margin: 0; }
 
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 22px;
-        }
+        /* Switch UI */
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #444;
-            transition: .4s;
-            border-radius: 22px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px; width: 16px;
-            left: 3px; bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #444; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--good-stat); }
         input:checked + .slider:before { transform: translateX(22px); }
 
-        .custom-select {
-            position: relative;
-            width: 100%;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            cursor: pointer;
-            user-select: none;
-            transition: border-color 0.2s;
-        }
+        /* Custom Select UI */
+        .custom-select { position: relative; width: 100%; background-color: var(--bg-color); border: 1px solid var(--border); border-radius: 4px; cursor: pointer; user-select: none; transition: border-color 0.2s; }
         .custom-select.open { border-color: var(--accent); }
         .custom-select.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
-        .cs-display {
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: var(--text-main);
-            font-size: 0.9em;
-        }
+        .cs-display { padding: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); font-size: 0.9em; }
         .cs-display::after { content: '▼'; font-size: 0.7em; color: var(--text-muted); }
-        .cs-options {
-            position: absolute;
-            top: calc(100% + 5px);
-            left: 0; right: 0;
-            background-color: var(--bg-color);
-            border: 1px solid var(--accent);
-            border-radius: 4px;
-            max-height: 250px;
-            overflow-y: auto;
-            display: none;
-            z-index: 100;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
-        .cs-optgroup {
-            padding: 8px 10px;
-            font-size: 0.75em;
-            color: var(--bg-color);
-            background-color: var(--accent);
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .cs-option {
-            padding: 10px 15px;
-            color: var(--text-main);
-            font-size: 0.9em;
-            transition: background-color 0.2s, color 0.2s;
-        }
+        .cs-options { position: absolute; top: calc(100% + 5px); left: 0; right: 0; background-color: var(--bg-color); border: 1px solid var(--accent); border-radius: 4px; max-height: 250px; overflow-y: auto; display: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .cs-optgroup { padding: 8px 10px; font-size: 0.75em; color: var(--bg-color); background-color: var(--accent); font-weight: bold; text-transform: uppercase; }
+        .cs-option { padding: 10px 15px; color: var(--text-main); font-size: 0.9em; transition: background-color 0.2s, color 0.2s; }
         .cs-option:hover { background-color: var(--panel-bg); color: var(--accent); }
 
-        .item-preview-tooltip {
-            position: fixed;
-            background-color: var(--bg-color);
-            border: 1px solid var(--accent);
-            border-radius: 8px;
-            padding: 15px;
-            color: var(--text-main);
-            pointer-events: none;
-            z-index: 9999;
-            display: none;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.8);
-            min-width: 240px;
-        }
-        .item-preview-tooltip h4 {
-            margin: 0 0 10px 0;
-            color: var(--accent);
-            font-size: 1em;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 5px;
-            text-transform: uppercase;
-        }
+        /* Tooltip UI */
+        .item-preview-tooltip { position: fixed; background-color: var(--bg-color); border: 1px solid var(--accent); border-radius: 8px; padding: 15px; color: var(--text-main); pointer-events: none; z-index: 9999; display: none; box-shadow: 0 8px 16px rgba(0,0,0,0.8); min-width: 240px; }
+        .item-preview-tooltip h4 { margin: 0 0 10px 0; color: var(--accent); font-size: 1em; border-bottom: 1px solid var(--border); padding-bottom: 5px; text-transform: uppercase; }
         .preview-stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.9em; font-weight: bold; }
         .preview-label { color: var(--text-muted); text-transform: uppercase; font-size: 0.8em; }
 
-        .operator-results {
-            margin-top: auto; 
-            padding-top: 15px; 
-            border-top: 1px solid var(--border);
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px 10px;
-        }
+        /* Global Gadget Section */
+        .global-card { background-color: var(--panel-bg); border: 2px solid var(--accent); border-radius: 8px; padding: 20px; margin-bottom: 30px; }
+        .gadget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .gadget-list { display: flex; flex-direction: column; gap: 10px; }
+        .gadget-row { display: flex; align-items: center; gap: 10px; }
+        
+        /* Action Buttons */
+        .btn { background: var(--bg-color); border: 1px solid var(--border); color: var(--text-main); padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        .btn:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-add { color: var(--good-stat); border-color: var(--good-stat); }
+        .btn-add:hover { background: var(--good-stat); color: var(--bg-color); }
+        .btn-remove { color: var(--bad-stat); border-color: var(--bad-stat); }
+        .btn-remove:hover { background: var(--bad-stat); color: var(--bg-color); }
 
+        /* Stats UI */
+        .operator-results { margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 15px 10px; }
         .local-stat { display: flex; flex-direction: column; }
         .local-stat .label { color: var(--text-muted); font-size: 0.7em; text-transform: uppercase; font-weight: bold; }
         .local-stat .value { font-size: 1.1em; font-weight: bold; }
 
-        .global-card {
-            background-color: var(--panel-bg);
-            border: 2px solid var(--accent);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .global-card h3 { margin: 0; }
-
-        .form-group { margin-bottom: 12px; display: flex; flex-direction: column; flex-grow: 1; }
-        label { font-size: 0.85em; margin-bottom: 3px; color: var(--text-muted); font-weight: bold; }
-
-        .results-panel {
-            background-color: var(--panel-bg);
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-        }
-
-        .stat-box {
-            background-color: var(--bg-color);
-            padding: 12px;
-            border-radius: 6px;
-            border-left: 4px solid var(--accent);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
+        .results-panel { background-color: var(--panel-bg); border: 2px solid var(--border); border-radius: 8px; padding: 25px; margin-bottom: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .stat-box { background-color: var(--bg-color); padding: 12px; border-radius: 6px; border-left: 4px solid var(--accent); display: flex; flex-direction: column; justify-content: center; }
         .stat-title { font-size: 0.8em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; font-weight: bold; }
         .stat-value { font-size: 1.4em; font-weight: bold; }
 
@@ -248,75 +122,40 @@
     <div class="setups-grid" id="setups-container"></div>
 
     <div class="global-card">
-        <h3>Global Gadget</h3>
-        <div class="form-group">
-            <label>Deployed on Rock</label>
-            <div class="custom-select" id="cs-global-gadget" data-value="0" onclick="toggleCS(this)">
-                <div class="cs-display">None</div>
-                <div class="cs-options"></div>
-            </div>
+        <div class="gadget-header">
+            <h3>Deployed Gadgets</h3>
+            <button class="btn btn-add" onclick="addGadgetRow()">+ Add Gadget</button>
         </div>
+        <div class="gadget-list" id="gadget-list">
+            </div>
     </div>
 
     <div class="results-panel">
         <h2>Combined Fleet Output</h2>
         <div class="stats-grid">
-            <div class="stat-box">
-                <div class="stat-title">Total Max Power</div>
-                <div class="stat-value" id="res-max-power" style="color: var(--accent);">0</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-title">Total Min Power</div>
-                <div class="stat-value" id="res-min-power" style="color: var(--text-main);">0</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-title">Resistance Mod</div>
-                <div class="stat-value" id="res-resistance">0%</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-title">Instability Mod</div>
-                <div class="stat-value" id="res-instability">0%</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-title">Opt. Window Mod</div>
-                <div class="stat-value" id="res-opt-win">0%</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-title">Opt. Charge Rate</div>
-                <div class="stat-value" id="res-opt-charge">0%</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-title">Overcharge Rate</div>
-                <div class="stat-value" id="res-overcharge">0%</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-title">Shatter Damage</div>
-                <div class="stat-value" id="res-shatter">0%</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-title">Cluster Modifier</div>
-                <div class="stat-value" id="res-cluster">0%</div>
-            </div>
+            <div class="stat-box"><div class="stat-title">Total Max Power</div><div class="stat-value" id="res-max-power" style="color: var(--accent);">0</div></div>
+            <div class="stat-box"><div class="stat-title">Total Min Power</div><div class="stat-value" id="res-min-power">0</div></div>
+            <div class="stat-box"><div class="stat-title">Resistance Mod</div><div class="stat-value" id="res-resistance">0%</div></div>
+            <div class="stat-box"><div class="stat-title">Instability Mod</div><div class="stat-value" id="res-instability">0%</div></div>
+            <div class="stat-box"><div class="stat-title">Opt. Window Mod</div><div class="stat-value" id="res-opt-win">0%</div></div>
+            <div class="stat-box"><div class="stat-title">Opt. Charge Rate</div><div class="stat-value" id="res-opt-charge">0%</div></div>
+            <div class="stat-box"><div class="stat-title">Overcharge Rate</div><div class="stat-value" id="res-overcharge">0%</div></div>
+            <div class="stat-box"><div class="stat-title">Shatter Damage</div><div class="stat-value" id="res-shatter">0%</div></div>
+            <div class="stat-box"><div class="stat-title">Cluster Modifier</div><div class="stat-value" id="res-cluster">0%</div></div>
         </div>
     </div>
 </div>
 
-<footer>
-    <div class="footer-content">
-        <span class="made-by">MADE BY ITSS_ILLY <span class="pipe">|</span></span>
-        <a href="https://github.com/itssilly4u/itssilly4u.github.io" class="github-link" target="_blank" rel="noopener">GITHUB</a>
-    </div>
-</footer>
+<footer><div class="footer-content"><span class="made-by">MADE BY ITSS_ILLY | </span><a href="https://github.com/itssilly4u/itssilly4u.github.io" class="github-link" target="_blank">GITHUB</a></div></footer>
 
 <script>
     const NUM_SETUPS = 3; 
     let lasers = [], modules = [], gadgets = [];
+    let gadgetOptionsHtml = "";
 
-    const tooltipEl = document.querySelector('.item-preview-tooltip') || document.createElement('div');
-    if (!tooltipEl.parentElement) {
-        tooltipEl.className = 'item-preview-tooltip';
-        document.body.appendChild(tooltipEl);
-    }
+    const tooltipEl = document.createElement('div');
+    tooltipEl.className = 'item-preview-tooltip';
+    document.body.appendChild(tooltipEl);
 
     document.addEventListener('mousemove', (e) => {
         if (tooltipEl.style.display === 'block') {
@@ -342,7 +181,6 @@
             let c = base ? '' : ((val > 0 ? !inv : inv) ? 'style="color:var(--good-stat);"' : 'style="color:var(--bad-stat);"');
             html += `<div class="preview-stat-row"><span class="preview-label">${label}</span><span ${c}>${d}${suffix}</span></div>`;
         };
-
         if (type === 'laser') {
             html += `<div class="preview-stat-row"><span class="preview-label">Power</span><span>${Math.round(item.powerMin)}-${Math.round(item.powerMax)}</span></div>`;
             addStat('Extraction', item.extraction, '', false, true);
@@ -351,7 +189,6 @@
             addStat('Power', item.power, '%');
             addStat('Extraction', item.extraction, '%');
         }
-
         addStat('Inert Filter', item.inert, '%', true);
         addStat('Resistance', item.resistance, '%', true);
         addStat('Instability', item.instability, '%', true);
@@ -363,11 +200,7 @@
         return html;
     }
 
-    function safeFloat(v, d=0) {
-        if (!v) return d;
-        let f = parseFloat(v.toString().replace(/[% ,]/g, ''));
-        return isNaN(f) ? d : f;
-    }
+    function safeFloat(v, d=0) { if (!v) return d; let f = parseFloat(v.toString().replace(/[% ,]/g, '')); return isNaN(f) ? d : f; }
 
     async function loadData() {
         try {
@@ -406,6 +239,8 @@
                 });
             });
 
+            gadgetOptionsHtml = gadgets.map((g, i) => `<div class="cs-option" data-val="${i}" onmouseenter="showPreview(${i}, 'gadget')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'gadget')">${g.name}</div>`).join('');
+
             document.getElementById('loading').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
             initUI();
@@ -431,49 +266,44 @@
         else calculate();
     }
 
-    function buildCSOption(item, index, type) {
-        return `<div class="cs-option" data-val="${index}" onmouseenter="showPreview(${index}, '${type}')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, '${type}')">${item.name}</div>`;
+    function addGadgetRow() {
+        const list = document.getElementById('gadget-list');
+        const row = document.createElement('div');
+        row.className = 'gadget-row';
+        row.innerHTML = `
+            <div class="custom-select gadget-select" data-value="0" onclick="toggleCS(this)">
+                <div class="cs-display">None</div>
+                <div class="cs-options">${gadgetOptionsHtml}</div>
+            </div>
+            <button class="btn btn-remove" onclick="this.parentElement.remove(); calculate();">Remove</button>
+        `;
+        list.appendChild(row);
     }
 
     function initUI() {
-        // Build Laser Groups
-        let laserOptions = `<div class="cs-option" data-val="0" onmouseenter="showPreview(0, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">None</div>`;
+        let laserOptions = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
         [2, 1, 0].forEach(s => {
-            let filtered = lasers.map((l, i) => ({l, i})).filter(o => o.l.size == s && o.l.name !== "None");
-            if (filtered.length) {
+            let f = lasers.map((l, i) => ({l, i})).filter(o => o.l.size == s && o.l.name !== "None");
+            if (f.length) {
                 laserOptions += `<div class="cs-optgroup">Size ${s} Lasers</div>`;
-                filtered.sort((a,b) => a.l.name.localeCompare(b.l.name)).forEach(o => laserOptions += buildCSOption(o.l, o.i, 'laser'));
+                f.forEach(o => laserOptions += `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${o.l.name}</div>`);
             }
         });
 
-        // Build Module Groups
-        let moduleOptions = `<div class="cs-option" data-val="0" onmouseenter="showPreview(0, 'module')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'module')">None</div>`;
-        let activeMods = modules.map((m, i) => ({m, i})).filter(o => o.m.uses > 0);
-        let passiveMods = modules.map((m, i) => ({m, i})).filter(o => o.m.uses === 0 && o.m.name !== "None");
-        
-        if (activeMods.length) {
-            moduleOptions += `<div class="cs-optgroup">Active Modules</div>`;
-            activeMods.sort((a,b) => a.m.name.localeCompare(b.m.name)).forEach(o => moduleOptions += buildCSOption(o.m, o.i, 'module'));
-        }
-        if (passiveMods.length) {
-            moduleOptions += `<div class="cs-optgroup">Passive Modules</div>`;
-            passiveMods.sort((a,b) => a.m.name.localeCompare(b.m.name)).forEach(o => moduleOptions += buildCSOption(o.m, o.i, 'module'));
-        }
-
-        const gadgetOptions = gadgets.map((g, i) => buildCSOption(g, i, 'gadget')).join('');
+        let modOptions = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'module')">None</div>`;
+        let actives = modules.map((m, i) => ({m, i})).filter(o => o.m.uses > 0);
+        let passives = modules.map((m, i) => ({m, i})).filter(o => o.m.uses === 0 && o.m.name !== "None");
+        if (actives.length) { modOptions += `<div class="cs-optgroup">Active Modules</div>`; actives.forEach(o => modOptions += `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'module')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'module')">${o.m.name}</div>`); }
+        if (passives.length) { modOptions += `<div class="cs-optgroup">Passive Modules</div>`; passives.forEach(o => modOptions += `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'module')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'module')">${o.m.name}</div>`); }
 
         const container = document.getElementById('setups-container');
         for (let i = 0; i < NUM_SETUPS; i++) {
             const card = document.createElement('div');
-            card.className = 'setup-card';
-            card.id = `card-${i}`;
+            card.className = 'setup-card'; card.id = `card-${i}`;
             card.innerHTML = `
-                <div class="card-header">
-                    <h3>Operator ${i + 1}</h3>
-                    <label class="switch"><input type="checkbox" checked onchange="toggleOperator(${i}, this.checked)"><span class="slider"></span></label>
-                </div>
+                <div class="card-header"><h3>Operator ${i + 1}</h3><label class="switch"><input type="checkbox" checked onchange="toggleOperator(${i}, this.checked)"><span class="slider"></span></label></div>
                 <div class="form-group"><label>Laser Head</label><div class="custom-select" id="cs-laser-${i}" data-value="0" onclick="toggleCS(this)"><div class="cs-display">None</div><div class="cs-options">${laserOptions}</div></div></div>
-                ${[1,2,3].map(m => `<div class="form-group"><label>Module ${m}</label><div class="custom-select disabled" id="cs-mod${m}-${i}" data-value="0" onclick="toggleCS(this)"><div class="cs-display">None</div><div class="cs-options">${moduleOptions}</div></div></div>`).join('')}
+                ${[1,2,3].map(m => `<div class="form-group"><label>Module ${m}</label><div class="custom-select disabled" id="cs-mod${m}-${i}" data-value="0" onclick="toggleCS(this)"><div class="cs-display">None</div><div class="cs-options">${modOptions}</div></div></div>`).join('')}
                 <div class="operator-results">
                     <div class="local-stat"><span class="label">Local Ext.</span><span class="value" id="op-ext-${i}">0.0</span></div>
                     <div class="local-stat"><span class="label">Local Inert</span><span class="value" id="op-inert-${i}">0%</span></div>
@@ -482,14 +312,9 @@
                 </div>`;
             container.appendChild(card);
         }
-        document.getElementById('cs-global-gadget').querySelector('.cs-options').innerHTML = gadgetOptions;
     }
 
-    function toggleOperator(i, state) {
-        document.getElementById(`card-${i}`).classList.toggle('off', !state);
-        calculate();
-    }
-
+    function toggleOperator(i, state) { document.getElementById(`card-${i}`).classList.toggle('off', !state); calculate(); }
     function handleLaserChange(i) {
         let l = lasers[document.getElementById(`cs-laser-${i}`).dataset.value];
         for (let m=1; m<=3; m++) {
@@ -500,16 +325,9 @@
         calculate();
     }
 
-    function calcMulti(arr) {
-        if (!arr.length) return 0;
-        let p = 1;
-        arr.forEach(v => p *= (1 + (v/100)));
-        return (p - 1) * 100;
-    }
-
+    function calcMulti(arr) { if (!arr.length) return 0; let p = 1; arr.forEach(v => p *= (1 + (v/100))); return (p - 1) * 100; }
     function updateStat(id, val, inv, suf='%') {
-        let el = document.getElementById(id);
-        if (!el) return;
+        let el = document.getElementById(id); if (!el) return;
         let d = val.toFixed(1).replace('.0', '');
         el.innerText = (val === 0 ? '0' : (val > 0 ? '+' + d : d)) + suf;
         el.style.color = val === 0 ? 'var(--text-main)' : ((val > 0 ? !inv : inv) ? 'var(--good-stat)' : 'var(--bad-stat)');
@@ -549,13 +367,16 @@
             document.getElementById(`op-maxrange-${i}`).innerText = (l.maxRange || 0) + 'm';
         }
 
-        let g = gadgets[document.getElementById('cs-global-gadget').dataset.value];
-        if (g && g.name !== "None") {
-            if (g.resistance) res.push(g.resistance); if (g.instability) inst.push(g.instability);
-            if (g.optimalWin) win.push(g.optimalWin); if (g.optCharge) chg.push(g.optCharge);
-            if (g.overcharge) overcharge.push(g.overcharge); if (g.shatter) shat.push(g.shatter);
-            if (g.cluster) clust.push(g.cluster);
-        }
+        // Calculate Stacking Global Gadgets
+        document.querySelectorAll('.gadget-select').forEach(el => {
+            let g = gadgets[el.dataset.value];
+            if (g && g.name !== "None") {
+                if (g.resistance) res.push(g.resistance); if (g.instability) inst.push(g.instability);
+                if (g.optimalWin) win.push(g.optimalWin); if (g.optCharge) chg.push(g.optCharge);
+                if (g.overcharge) over.push(g.overcharge); if (g.shatter) shat.push(g.shatter);
+                if (g.cluster) clust.push(g.cluster);
+            }
+        });
 
         document.getElementById('res-max-power').innerText = Math.round(tMax).toLocaleString();
         document.getElementById('res-min-power').innerText = Math.round(tMin).toLocaleString();
