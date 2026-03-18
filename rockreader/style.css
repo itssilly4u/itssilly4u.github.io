@@ -1,0 +1,105 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1a1c22;
+    color: #d1d4dc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background-color: #252830;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    text-align: center;
+    width: 90%;
+    max-width: 500px;
+    position: relative; 
+}
+
+h1 { color: #f2cc0c; font-size: 1.5rem; margin-bottom: 20px; text-transform: uppercase;}
+
+.input-group { margin-bottom: 25px; }
+
+label { display: block; margin-bottom: 8px; font-weight: bold; color: #a1a6b0;}
+
+input[type="number"] {
+    width: 80%;
+    padding: 12px;
+    font-size: 1.2rem;
+    border: 2px solid #3f4551;
+    border-radius: 6px;
+    background-color: #1a1c22;
+    color: #fff;
+    text-align: center;
+}
+
+button {
+    padding: 12px 25px;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #1a1c22;
+    background-color: #f2cc0c;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover { background-color: #e6b800; }
+
+#results { margin-top: 20px; text-align: left;}
+
+#results ul {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 15px;
+}
+
+#results li {
+    background-color: #2d313a;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+#results .ore-name { color: #fff; font-weight: bold;}
+#results .ore-count { color: #f2cc0c;}
+
+.watermark {
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px solid #3f4551;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.8rem;
+    color: #6a6f7a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.watermark img {
+    height: 20px;
+    width: auto;
+    opacity: 0.6;
+}
+
+.watermark a {
+    color: #f2cc0c;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.watermark a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
