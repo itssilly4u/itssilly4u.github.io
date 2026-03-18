@@ -98,6 +98,45 @@
         .stat-title { font-size: 0.8em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; font-weight: bold; }
         .stat-value { font-size: 1.4em; font-weight: bold; }
 
+        .tooltip-text {
+            visibility: hidden;
+            width: 220px;
+            background-color: var(--bg-color);
+            color: #d1d5db;
+            text-align: center;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 10;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+            font-size: 0.85em;
+            font-weight: normal;
+            line-height: 1.4;
+            pointer-events: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -6px;
+            border-width: 6px;
+            border-style: solid;
+            border-color: var(--accent) transparent transparent transparent;
+        }
+
+        .has-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
         /* Rock Cracker Section */
         .cracker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 15px; }
         .cracker-input-group { display: flex; flex-direction: column; gap: 5px; }
@@ -111,7 +150,9 @@
 
         footer { background-color: var(--panel-bg); border-top: 2px solid var(--border); padding: 15px 0; margin-top: auto; width: 100%; }
         .footer-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .github-link { font-size: 14px; color: var(--accent); text-transform: uppercase; text-decoration: none; }
+        .github-link { font-size: 16px; color: var(--accent); text-transform: uppercase; text-decoration: none; }
+        .footer-content img {height: 20px; width: auto; opacity: 0.6;}
+        .footer-content a:hover {color: #fff; text-decoration: underline;}
         #loading { text-align: center; padding: 50px; font-size: 1.5em; color: var(--accent); }
         #app-content { display: none; }
     </style>
@@ -140,7 +181,8 @@
             <div class="stat-box"><div class="stat-title">Total Min Power</div><div class="stat-value" id="res-min-power">0</div></div>
             <div class="stat-box"><div class="stat-title">Resistance Mod</div><div class="stat-value" id="res-resistance">0%</div></div>
             <div class="stat-box"><div class="stat-title">Instability Mod</div><div class="stat-value" id="res-instability">0%</div></div>
-            <div class="stat-box"><div class="stat-title">Opt. Window Mod</div><div class="stat-value" id="res-opt-win">0%</div></div>
+            <div class="stat-box has-tooltip"><div class="stat-title">Opt. Window Mod</div><div class="stat-value" id="res-opt-win">0%</div>
+            <span class="tooltip-text">Regardless of how many modifiers you stack, the Optimal Charge Window is hard-capped at 50% in-game.</span>
             <div class="stat-box"><div class="stat-title">Opt. Charge Rate</div><div class="stat-value" id="res-opt-charge">0%</div></div>
             <div class="stat-box"><div class="stat-title">Overcharge Rate</div><div class="stat-value" id="res-overcharge">0%</div></div>
             <div class="stat-box"><div class="stat-title">Shatter Damage</div><div class="stat-value" id="res-shatter">0%</div></div>
@@ -156,11 +198,11 @@
                 <input type="number" id="rock-mass" class="cracker-input" placeholder="e.g. 5000" oninput="calculate()">
             </div>
             <div class="cracker-input-group">
-                <label>Base Resistance (%)</label>
+                <label>Rock Resistance</label>
                 <input type="number" id="rock-res" class="cracker-input" placeholder="e.g. 40" oninput="calculate()">
             </div>
             <div class="cracker-input-group">
-                <label>Base Instability</label>
+                <label>Rock Instability</label>
                 <input type="number" id="rock-inst" class="cracker-input" placeholder="e.g. 150" oninput="calculate()">
             </div>
             <div class="cracker-input-group" style="justify-content: center; align-items: flex-start;">
@@ -186,7 +228,10 @@
     </div>
 </div>
 
-<footer><div class="footer-content"><span class="made-by">MADE BY ITSS_ILLY | </span><a href="https://github.com/itssilly4u/itssilly4u.github.io" class="github-link" target="_blank">GITHUB</a></div></footer>
+<footer>
+    <div class="footer-content"><img src="https://support.robertsspaceindustries.com/hc/article_attachments/360021770294" alt="RSI Logo">
+    <span class="made-by">MADE BY ITSS_ILLY | </span><a href="https://github.com/itssilly4u/itssilly4u.github.io" class="github-link" target="_blank">GITHUB</a></div>
+</footer>
 
 <script>
     const NUM_SETUPS = 3; 
@@ -500,11 +545,11 @@ function calculate() {
             const iStatus = document.getElementById('crack-inst-status');
             document.getElementById('crack-inst-final').innerText = "Final Instability: " + Math.round(finalInst).toLocaleString();
 
-            if (finalInst < 100) {
+            if (finalInst < 101) {
                 iStatus.innerText = "Stable";
                 iStatus.style.backgroundColor = "var(--crackable)";
                 iStatus.style.color = "white";
-            } else if (finalInst < 300) {
+            } else if (finalInst < 301) {
                 iStatus.innerText = "Unstable";
                 iStatus.style.backgroundColor = "var(--difficult)";
                 iStatus.style.color = "black";
