@@ -73,7 +73,7 @@
         .cs-display::after { content: '▼'; font-size: 0.7em; color: var(--text-muted); }
         .cs-options { position: absolute; top: calc(100% + 5px); left: 0; right: 0; background-color: var(--bg-color); border: 1px solid var(--accent); border-radius: 4px; max-height: 250px; overflow-y: auto; display: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
         .cs-optgroup { padding: 8px 10px; font-size: 0.75em; color: var(--bg-color); background-color: var(--accent); font-weight: bold; text-transform: uppercase; }
-        .cs-option { padding: 10px 15px; color: var(--text-main); font-size: 0.9em; transition: background-color 0.2s, color 0.2s; }
+        .cs-option { padding: 10px 15px; color: var(--text-main); font-size: 0.9em; transition: background-color 0.2s, color 0.2s; text-transform: uppercase; letter-spacing: 1px;}
         .cs-option:hover { background-color: var(--panel-bg); color: var(--accent); }
 
         /* Tooltip UI */
@@ -159,19 +159,19 @@
         <div class="disclaimer">Disclaimer: This is a rough calculation. In-game values and situations may differ and are subject to change.</div>
         <div class="cracker-grid">
             <div class="cracker-input-group">
-                <label>Rock Mass</label>
-                <input type="number" id="rock-mass" class="cracker-input" placeholder="e.g. 5000" oninput="calculate()">
+                <div class="stat-title">Rock Mass</div>
+                <input type="number" id="rock-mass" class="cracker-input" placeholder="0" oninput="calculate()" value="5000">
             </div>
             <div class="cracker-input-group">
-                <label>Rock Resistance</label>
-                <input type="number" id="rock-res" class="cracker-input" placeholder="e.g. 40" oninput="calculate()">
+                <div class="stat-title">Rock Resistance</div>
+                <input type="number" id="rock-res" class="cracker-input" placeholder="0" oninput="calculate()" value="40">
             </div>
             <div class="cracker-input-group">
-                <label>Rock Instability</label>
-                <input type="number" id="rock-inst" class="cracker-input" placeholder="e.g. 150" oninput="calculate()">
+                <div class="stat-title">Rock Instability</div>
+                <input type="number" id="rock-inst" class="cracker-input" placeholder="0" oninput="calculate()" value="150">
             </div>
             <div class="cracker-input-group" style="justify-content: center; align-items: flex-start;">
-                <label>Gadgets attached during scan?</label>
+                <div class="stat-title">Gadgets attached during scan?</div>
                 <label class="switch" style="margin-top: 10px;">
                     <input type="checkbox" id="gadgets-scanned" onchange="calculate()">
                     <span class="slider"></span>
