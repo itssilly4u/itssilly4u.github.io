@@ -131,6 +131,50 @@
         .footer-content a:hover {color: #fff; text-decoration: underline;}
         #loading { text-align: center; padding: 50px; font-size: 1.5em; color: var(--accent); }
         #app-content { display: none; }
+
+        /* Accordion UI */
+        .accordion-header {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 15px 25px;
+            margin-bottom: 15px; /* Spacing when closed */
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: border-color 0.2s;
+        }
+        .accordion-header:hover {
+            border-color: var(--accent);
+        }
+        .accordion-header h2 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+        .accordion-icon {
+            font-size: 1.2em;
+            color: var(--accent);
+            transition: transform 0.3s ease;
+        }
+        .accordion-header.active {
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 0;
+            border-bottom: 1px dashed var(--border); /* Subtle separator */
+        }
+        .accordion-header.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+        .accordion-content {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            display: none; /* Hidden by default */
+        }
+        
     </style>
 </head>
 <body>
@@ -168,8 +212,11 @@
         </div>
     </div>
 
-    <div class="results-panel">
+    <div class="accordion-header" onclick="toggleAccordion(this)">
         <h2>Rock Cracker Analysis</h2>
+        <span class="accordion-icon">▼</span>
+    </div>
+    <div class="accordion-content">
         <div class="disclaimer">Disclaimer: This is a rough calculation. In-game values and situations may differ and are subject to change.</div>
         <div class="cracker-grid">
             <div class="cracker-input-group">
@@ -205,6 +252,16 @@
             </div>
         </div>
     </div>
+
+    <div class="accordion-header" onclick="toggleAccordion(this)">
+        <h2>RockReader Tool</h2>
+        <span class="accordion-icon">▼</span>
+    </div>
+    <div class="accordion-content">
+        <div style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">
+            RockReader Tool configuration coming soon...
+        </div>
+        </div>
 </div>
 
 <footer>
@@ -351,6 +408,17 @@
         list.appendChild(row);
         calculate();
     }
+
+    function toggleAccordion(headerElement) {
+            headerElement.classList.toggle('active');
+            const contentElement = headerElement.nextElementSibling;
+            
+            if (headerElement.classList.contains('active')) {
+                contentElement.style.display = 'block';
+            } else {
+                contentElement.style.display = 'none';
+            }
+        }
 
     function initUI() {
         let laserOptions = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
