@@ -303,7 +303,7 @@
     </div>
 
     <div class="accordion-header" onclick="toggleAccordion(this)">
-        <h2>RockReader Tool</h2>
+        <h2>Rock Reader Tool</h2>
         <span class="accordion-icon">▼</span>
     </div>
     <div class="accordion-content">
@@ -518,10 +518,16 @@
         }
     }
 
-    // Allows pressing 'Enter' to check matches
-    document.getElementById('signatureInput').addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            findOres();
+    // Safely attach the Enter key listener after the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const sigInput = document.getElementById('signatureInput');
+        if (sigInput) {
+            sigInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Stops the page from accidentally refreshing
+                    findOres();
+                }
+            });
         }
     });
 
