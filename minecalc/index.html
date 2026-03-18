@@ -67,7 +67,6 @@
             border-color: #551a1a;
         }
 
-        /* --- OPERATOR TOGGLE CSS --- */
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -103,7 +102,6 @@
         input:checked + .slider { background-color: var(--good-stat); }
         input:checked + .slider:before { transform: translateX(22px); }
 
-        /* --- CUSTOM SELECT DROPDOWN CSS --- */
         .custom-select {
             position: relative;
             width: 100%;
@@ -154,7 +152,6 @@
         }
         .cs-option:hover { background-color: var(--panel-bg); color: var(--accent); }
 
-        /* --- PREVIEW TOOLTIP CSS --- */
         .item-preview-tooltip {
             position: fixed;
             background-color: var(--bg-color);
@@ -386,7 +383,7 @@
                     name: `${l.Item} (S${l.Size})`, slots: safeFloat(l['Module Slots']), powerMin: pmin, powerMax: pmax, extraction: safeFloat(l['Extraction Laser Power'] || l['Extraction Throughput']),
                     inert: safeFloat(l['Inert Material Level']), resistance: safeFloat(l['Resistance']), instability: safeFloat(l['Laser Instability'] || l.Instability), 
                     optimalWin: safeFloat(l['Optimal Charge Window Size']), optCharge: safeFloat(l['Optimal Charge Window Rate']), overcharge: safeFloat(l['Catastrophic Charge Rate']), 
-                    shatter: safeFloat(l['Shatter Damage']), optRange: safeFloat(l['Optimal Range']), maxRange: safeFloat(l['Maximum Range'])
+                    shatter: safeFloat(l['Shatter Damage']), optRange: safeFloat(l['Optimal Range']), maxRange: safeFloat(l['Maximum Range']), size: l.Size
                 });
             });
 
@@ -434,10 +431,36 @@
         else calculate();
     }
 
+    function buildCSOption(item, index, type) {
+        return `<div class="cs-option" data-val="${index}" onmouseenter="showPreview(${index}, '${type}')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, '${type}')">${item.name}</div>`;
+    }
+
     function initUI() {
-        const lH = lasers.map((l, i) => `<div class="cs-option" data-val="${i}" onmouseenter="showPreview(${i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${l.name}</div>`).join('');
-        const mH = modules.map((m, i) => `<div class="cs-option" data-val="${i}" onmouseenter="showPreview(${i}, 'module')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'module')">${m.name}</div>`).join('');
-        const gH = gadgets.map((g, i) => `<div class="cs-option" data-val="${i}" onmouseenter="showPreview(${i}, 'gadget')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'gadget')">${g.name}</div>`).join('');
+        // Build Laser Groups
+        let laserOptions = `<div class="cs-option" data-val="0" onmouseenter="showPreview(0, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">None</div>`;
+        [2, 1, 0].forEach(s => {
+            let filtered = lasers.map((l, i) => ({l, i})).filter(o => o.l.size == s && o.l.name !== "None");
+            if (filtered.length) {
+                laserOptions += `<div class="cs-optgroup">Size ${s} Lasers</div>`;
+                filtered.sort((a,b) => a.l.name.localeCompare(b.l.name)).forEach(o => laserOptions += buildCSOption(o.l, o.i, 'laser'));
+            }
+        });
+
+        // Build Module Groups
+        let moduleOptions = `<div class="cs-option" data-val="0" onmouseenter="showPreview(0, 'module')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'module')">None</div>`;
+        let activeMods = modules.map((m, i) => ({m, i})).filter(o => o.m.uses > 0);
+        let passiveMods = modules.map((m, i) => ({m, i})).filter(o => o.m.uses === 0 && o.m.name !== "None");
+        
+        if (activeMods.length) {
+            moduleOptions += `<div class="cs-optgroup">Active Modules</div>`;
+            activeMods.sort((a,b) => a.m.name.localeCompare(b.m.name)).forEach(o => moduleOptions += buildCSOption(o.m, o.i, 'module'));
+        }
+        if (passiveMods.length) {
+            moduleOptions += `<div class="cs-optgroup">Passive Modules</div>`;
+            passiveMods.sort((a,b) => a.m.name.localeCompare(b.m.name)).forEach(o => moduleOptions += buildCSOption(o.m, o.i, 'module'));
+        }
+
+        const gadgetOptions = gadgets.map((g, i) => buildCSOption(g, i, 'gadget')).join('');
 
         const container = document.getElementById('setups-container');
         for (let i = 0; i < NUM_SETUPS; i++) {
@@ -449,8 +472,8 @@
                     <h3>Operator ${i + 1}</h3>
                     <label class="switch"><input type="checkbox" checked onchange="toggleOperator(${i}, this.checked)"><span class="slider"></span></label>
                 </div>
-                <div class="form-group"><label>Laser Head</label><div class="custom-select" id="cs-laser-${i}" data-value="0" onclick="toggleCS(this)"><div class="cs-display">None</div><div class="cs-options">${lH}</div></div></div>
-                ${[1,2,3].map(m => `<div class="form-group"><label>Module ${m}</label><div class="custom-select disabled" id="cs-mod${m}-${i}" data-value="0" onclick="toggleCS(this)"><div class="cs-display">None</div><div class="cs-options">${mH}</div></div></div>`).join('')}
+                <div class="form-group"><label>Laser Head</label><div class="custom-select" id="cs-laser-${i}" data-value="0" onclick="toggleCS(this)"><div class="cs-display">None</div><div class="cs-options">${laserOptions}</div></div></div>
+                ${[1,2,3].map(m => `<div class="form-group"><label>Module ${m}</label><div class="custom-select disabled" id="cs-mod${m}-${i}" data-value="0" onclick="toggleCS(this)"><div class="cs-display">None</div><div class="cs-options">${moduleOptions}</div></div></div>`).join('')}
                 <div class="operator-results">
                     <div class="local-stat"><span class="label">Local Ext.</span><span class="value" id="op-ext-${i}">0.0</span></div>
                     <div class="local-stat"><span class="label">Local Inert</span><span class="value" id="op-inert-${i}">0%</span></div>
@@ -459,7 +482,7 @@
                 </div>`;
             container.appendChild(card);
         }
-        document.getElementById('cs-global-gadget').querySelector('.cs-options').innerHTML = gH;
+        document.getElementById('cs-global-gadget').querySelector('.cs-options').innerHTML = gadgetOptions;
     }
 
     function toggleOperator(i, state) {
@@ -530,7 +553,7 @@
         if (g && g.name !== "None") {
             if (g.resistance) res.push(g.resistance); if (g.instability) inst.push(g.instability);
             if (g.optimalWin) win.push(g.optimalWin); if (g.optCharge) chg.push(g.optCharge);
-            if (g.overcharge) over.push(g.overcharge); if (g.shatter) shat.push(g.shatter);
+            if (g.overcharge) overcharge.push(g.overcharge); if (g.shatter) shat.push(g.shatter);
             if (g.cluster) clust.push(g.cluster);
         }
 
