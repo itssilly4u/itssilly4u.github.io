@@ -5,6 +5,7 @@ let importMode = "";
 
 let laserOptionsS1 = ""; 
 let laserOptionsS2 = ""; 
+let laserOptionsGolem = ""; 
 
 const tooltipEl = document.createElement('div');
 tooltipEl.className = 'item-preview-tooltip';
@@ -110,17 +111,19 @@ async function loadData() {
 function initUI() {
     laserOptionsS1 = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
     laserOptionsS2 = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
+    laserOptionsGolem = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
     
-    [2, 1, 0].forEach(s => {
-        let f = lasers.map((l, i) => ({l, i})).filter(o => o.l.size === s && o.l.name !== "None");
-        if (f.length) {
-            let groupHtml = `<div class="cs-optgroup">Size ${s} Lasers</div>`;
-            f.forEach(o => groupHtml += `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${o.l.name}</div>`);
-            
-            if (s === 2) laserOptionsS2 += groupHtml;
-            if (s === 1) laserOptionsS1 += groupHtml; 
-        }
-    });
+    // Size 2 Lasers (MOLE)
+    let f2 = lasers.map((l, i) => ({l, i})).filter(o => o.l.size === 2 && o.l.name !== "None");
+    if(f2.length) laserOptionsS2 += `<div class="cs-optgroup">Size 2 Lasers</div>` + f2.map(o => `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${o.l.name}</div>`).join('');
+
+    // Size 1 Lasers (Prospector) - Explicitly excludes the Pitman
+    let f1 = lasers.map((l, i) => ({l, i})).filter(o => o.l.size === 1 && o.l.name !== "None" && !o.l.name.toLowerCase().includes("pitman"));
+    if(f1.length) laserOptionsS1 += `<div class="cs-optgroup">Size 1 Lasers</div>` + f1.map(o => `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${o.l.name}</div>`).join('');
+
+    // Dedicated Golem Laser (Only grabs the Pitman)
+    let fGolem = lasers.map((l, i) => ({l, i})).filter(o => o.l.name.toLowerCase().includes("pitman"));
+    if(fGolem.length) laserOptionsGolem += `<div class="cs-optgroup">Drake Golem</div>` + fGolem.map(o => `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${o.l.name}</div>`).join('');
 
     modOptionsHtml = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'module')">None</div>`;
     let actives = modules.map((m, i) => ({m, i})).filter(o => o.m.uses > 0);
@@ -178,10 +181,14 @@ function addShip(type, loadConfig = null, customName = null) {
             operatorIds.push(opId);
             operatorsHtml += createOperatorHtml(opId, seat, laserOptionsS2);
         });
-    } else {
+    } else if (type === 'PROSPECTOR') {
         let opId = generateId();
         operatorIds.push(opId);
         operatorsHtml += createOperatorHtml(opId, 'Pilot Seat', laserOptionsS1);
+    } else if (type === 'GOLEM') {
+        let opId = generateId();
+        operatorIds.push(opId);
+        operatorsHtml += createOperatorHtml(opId, 'Pilot Seat', laserOptionsGolem);
     }
 
     shipDiv.innerHTML = `
