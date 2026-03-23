@@ -1,11 +1,10 @@
 let lasers = [], modules = [], gadgets = [];
 let gadgetOptionsHtml = "";
 let modOptionsHtml = "";
-let importMode = ""; // Tracks if we are importing a fleet or ship
+let importMode = ""; 
 
-// Dynamic dropdown cache
-let laserOptionsS1 = ""; // Size 0 & 1
-let laserOptionsS2 = ""; // Size 2 only
+let laserOptionsS1 = ""; 
+let laserOptionsS2 = ""; 
 
 const tooltipEl = document.createElement('div');
 tooltipEl.className = 'item-preview-tooltip';
@@ -109,7 +108,6 @@ async function loadData() {
 // --- FLEET BUILDER ENGINE ---
 
 function initUI() {
-    // Generate S1 (Size 1 only) and S2 (Size 2 only) drop downs
     laserOptionsS1 = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
     laserOptionsS2 = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
     
@@ -119,7 +117,6 @@ function initUI() {
             let groupHtml = `<div class="cs-optgroup">Size ${s} Lasers</div>`;
             f.forEach(o => groupHtml += `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${o.l.name}</div>`);
             
-            // Strict filtering so S0 doesn't bleed into S1
             if (s === 2) laserOptionsS2 += groupHtml;
             if (s === 1) laserOptionsS1 += groupHtml; 
         }
@@ -133,7 +130,6 @@ function initUI() {
 
     gadgetOptionsHtml = gadgets.map((g, i) => `<div class="cs-option" data-val="${i}" onmouseenter="showPreview(${i}, 'gadget')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'gadget')">${g.name}</div>`).join('');
 
-    // Start with a MOLE as the default ship
     addShip('MOLE');
 }
 
@@ -165,13 +161,12 @@ function addShip(type, loadConfig = null, customName = null) {
     shipDiv.id = `ship-${shipId}`;
     shipDiv.dataset.type = type;
 
-    // Force ships into perfect groups based on type
     if (type === 'MOLE') { shipDiv.style.order = '1'; } 
     else if (type === 'PROSPECTOR') { shipDiv.style.order = '2'; } 
     else if (type === 'GOLEM') { shipDiv.style.order = '3'; }
 
     let headerIcon = type === 'MOLE' ? '🟧' : (type === 'PROSPECTOR' ? '🟦' : '🟨');
-    let displayName = customName ? customName : type; // Use custom name if it exists!
+    let displayName = customName ? customName : type; 
     
     let operatorsHtml = "";
     let operatorIds = [];
@@ -211,15 +206,24 @@ function addShip(type, loadConfig = null, customName = null) {
     calculate();
 }
 
-// --- NEW RENAMING LOGIC ---
+function clearFleet() {
+    if (confirm("Are you sure you want to clear the entire fleet?")) {
+        document.getElementById('fleet-container').innerHTML = '';
+        calculate();
+    }
+}
+
+function removeShip(shipId) {
+    document.getElementById(`ship-${shipId}`).remove();
+    calculate();
+}
+
 function editShipName(shipId) {
     document.getElementById(`title-text-${shipId}`).style.display = 'none';
     document.getElementById(`edit-icon-${shipId}`).style.display = 'none';
     let input = document.getElementById(`title-input-${shipId}`);
     input.style.display = 'block';
     input.focus();
-    
-    // Move cursor to the end of the text
     let val = input.value;
     input.value = '';
     input.value = val;
@@ -232,7 +236,6 @@ function saveShipName(shipId) {
 
     let newName = input.value.trim();
     if (newName === '') {
-        // If they leave it blank, reset it to the default ship type
         newName = document.getElementById(`ship-${shipId}`).dataset.type;
         input.value = newName;
     }
@@ -243,12 +246,16 @@ function saveShipName(shipId) {
     icon.style.display = 'block';
 }
 
-function removeShip(shipId) {
-    document.getElementById(`ship-${shipId}`).remove();
-    calculate();
+// --- SECURITY & VALIDATION ---
+function generateHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; 
+    }
+    return Math.abs(hash).toString(16); 
 }
-
-// --- IMPORT / EXPORT LOGIC ---
 
 function triggerImport(mode) {
     importMode = mode;
@@ -264,7 +271,6 @@ function handleImport(event) {
         try {
             const data = JSON.parse(e.target.result);
             
-            // SECURITY CHECK
             if (!data._hash) { alert("❌ Invalid File: Missing security signature."); return; }
             const providedHash = data._hash;
             delete data._hash; 
@@ -275,12 +281,10 @@ function handleImport(event) {
             if (data.type === 'FLEET' || (importMode === 'FLEET' && data.ships)) {
                 if (confirm("Importing a Fleet will overwrite your current setup. Continue?")) {
                     document.getElementById('fleet-container').innerHTML = '';
-                    // Added s.customName here!
                     data.ships.forEach(s => addShip(s.shipType || s.type, s.operators, s.customName));
                 }
             } else if (data.type === 'SHIP' || importMode === 'SHIP') {
                 let t = data.shipType || (data.operators && data.operators.length > 1 ? 'MOLE' : 'PROSPECTOR');
-                // Added data.customName here!
                 addShip(t, data.operators, data.customName);
             }
         } catch (err) { alert("❌ Invalid JSON file format!"); }
@@ -302,12 +306,8 @@ function exportShip(shipId) {
     let data = extractShipData(ship);
     data.type = 'SHIP';
     
-    // Format the filename!
     let filename = `minecalc-${data.shipType.toLowerCase()}.json`;
-    
-    // If they changed the name from the default, format it for the download
     if (data.customName && data.customName !== data.shipType) {
-        // Replaces spaces with underscores and removes weird symbols
         let safeName = data.customName.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_');
         filename = `${safeName}.json`;
     }
@@ -315,28 +315,7 @@ function exportShip(shipId) {
     downloadJsonWithHash(data, filename);
 }
 
-function downloadJsonWithHash(obj, filename) {
-    // 1. Turn the pure data into a string
-    const jsonString = JSON.stringify(obj);
-    
-    // 2. Generate the unique signature
-    const hash = generateHash(jsonString);
-    
-    // 3. Attach the signature to the object
-    obj._hash = hash; 
-    
-    // 4. Download it
-    const finalStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obj, null, 2));
-    const el = document.createElement('a');
-    el.setAttribute("href", finalStr);
-    el.setAttribute("download", filename);
-    document.body.appendChild(el);
-    el.click();
-    el.remove();
-}
-
 function extractShipData(shipDiv) {
-    // Grab the custom text from the title
     let titleText = shipDiv.querySelector('.ship-title-text').innerText;
     let data = { shipType: shipDiv.dataset.type, customName: titleText, operators: [] };
     
@@ -352,6 +331,19 @@ function extractShipData(shipDiv) {
         });
     });
     return data;
+}
+
+function downloadJsonWithHash(obj, filename) {
+    const jsonString = JSON.stringify(obj);
+    obj._hash = generateHash(jsonString); 
+    
+    const finalStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obj, null, 2));
+    const el = document.createElement('a');
+    el.setAttribute("href", finalStr);
+    el.setAttribute("download", filename);
+    document.body.appendChild(el);
+    el.click();
+    el.remove();
 }
 
 function applyShipConfig(operatorIds, opConfigs) {
@@ -374,24 +366,12 @@ function applyShipConfig(operatorIds, opConfigs) {
         };
 
         setSelect(`cs-laser-${opId}`, conf.laser, lasers);
-        handleLaserChange(opId); // unlock module slots
+        handleLaserChange(opId); 
         setSelect(`cs-mod1-${opId}`, conf.m1, modules);
         setSelect(`cs-mod2-${opId}`, conf.m2, modules);
         setSelect(`cs-mod3-${opId}`, conf.m3, modules);
     });
 }
-
-function downloadJson(obj, filename) {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obj, null, 2));
-    const el = document.createElement('a');
-    el.setAttribute("href", dataStr);
-    el.setAttribute("download", filename);
-    document.body.appendChild(el);
-    el.click();
-    el.remove();
-}
-
-// --- STANDARD UI LOGIC ---
 
 function toggleCS(container) {
     if (container.classList.contains('disabled')) return;
@@ -460,7 +440,6 @@ function calculate() {
     let gadgetRes = [], gadgetInst = []; 
     let win = [], chg = [], over = [], shat = [], clust = [];
 
-    // Loop through ALL active operator cards on the page dynamically
     document.querySelectorAll('.setup-card').forEach(card => {
         let opId = card.dataset.opid;
         if (card.classList.contains('off')) {
@@ -596,7 +575,6 @@ function calculate() {
     }
 }
 
-// RockReader Logic
 function findOres() {
     const inputSignatureStr = document.getElementById('signatureInput').value;
     const resultsDiv = document.getElementById('results');
@@ -647,15 +625,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.onclick = (e) => { if (!e.target.closest('.custom-select')) document.querySelectorAll('.custom-select').forEach(el => { el.classList.remove('open'); el.querySelector('.cs-options').style.display='none'; }); };
 window.onload = loadData;
-
-// --- SECURITY & VALIDATION ---
-function generateHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32bit integer
-    }
-    // Return as a positive hex string for a clean look
-    return Math.abs(hash).toString(16); 
-}
