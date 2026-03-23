@@ -223,9 +223,8 @@ footer { background-color: var(--panel-bg); border-top: 2px solid var(--border);
     font-weight: bold;
 }
 
-/* ========================================= */
-/* --- RESPONSIVE FLEET BUILDER STYLES --- */
-/* ========================================= */
+
+/* RESPONSIVE FLEET BUILDER STYLES */
 
 .fleet-controls {
     display: flex;
@@ -358,4 +357,10 @@ footer { background-color: var(--panel-bg); border-top: 2px solid var(--border);
 }
 .edit-icon:hover {
     opacity: 1;
+}
+
+/* Fix single-seat ships squishing their operator cards */
+.ship-container[data-type="PROSPECTOR"] .setups-grid,
+.ship-container[data-type="GOLEM"] .setups-grid {
+    grid-template-columns: 1fr;
 }
