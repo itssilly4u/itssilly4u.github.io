@@ -132,7 +132,7 @@ function initUI() {
     gadgetOptionsHtml = gadgets.map((g, i) => `<div class="cs-option" data-val="${i}" onmouseenter="showPreview(${i}, 'gadget')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'gadget')">${g.name}</div>`).join('');
 
     // Start with a default ship
-    addShip('PROSPECTOR');
+    addShip('MOLE');
 }
 
 function generateId() { return Math.random().toString(36).substr(2, 9); }
@@ -166,7 +166,7 @@ function addShip(type, loadConfig = null) {
     // Use flex order to keep MOLEs at the top
     shipDiv.style.order = type === 'MOLE' ? '1' : '2';
 
-    let headerIcon = type === 'MOLE' ? '🟧' : (type === 'PROSPECTOR' ? '🟨' : '🟩');
+    let headerIcon = type === 'MOLE' ? '🟧' : (type === 'PROSPECTOR' ? '🟦' : '🟨');
     let operatorsHtml = "";
     let operatorIds = [];
 
