@@ -216,3 +216,58 @@ footer { background-color: var(--panel-bg); border-top: 2px solid var(--border);
     text-transform: uppercase; 
     font-weight: bold;
 }
+
+/* NEW: Fleet Builder Specific Styles */
+.fleet-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    justify-content: space-between;
+}
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.control-label {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+.btn-export { color: #38bdf8; border-color: #38bdf8; }
+.btn-import { color: #a78bfa; border-color: #a78bfa; }
+
+.ship-container {
+    background-color: var(--bg-color);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+}
+.ship-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+.ship-header h2 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.4em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.ship-header-controls {
+    display: flex;
+    gap: 10px;
+}
+/* Re-use your existing setups-grid, just nested now */
+.ship-container .setups-grid {
+    margin-bottom: 0;
+}

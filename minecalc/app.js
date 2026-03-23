@@ -1,6 +1,11 @@
-const NUM_SETUPS = 3; 
 let lasers = [], modules = [], gadgets = [];
 let gadgetOptionsHtml = "";
+let modOptionsHtml = "";
+let importMode = ""; // Tracks if we are importing a fleet or ship
+
+// Dynamic dropdown cache
+let laserOptionsS1 = ""; // Size 0 & 1
+let laserOptionsS2 = ""; // Size 2 only
 
 const tooltipEl = document.createElement('div');
 tooltipEl.className = 'item-preview-tooltip';
@@ -72,7 +77,7 @@ async function loadData() {
                 name: `${l.Item} (S${l.Size})`, slots: safeFloat(l['Module Slots']), powerMin: pmin, powerMax: pmax, extraction: safeFloat(l['Extraction Laser Power'] || l['Extraction Throughput']),
                 inert: safeFloat(l['Inert Material Level']), resistance: safeFloat(l['Resistance']), instability: safeFloat(l['Laser Instability'] || l.Instability), 
                 optimalWin: safeFloat(l['Optimal Charge Window Size']), optCharge: safeFloat(l['Optimal Charge Window Rate']), overcharge: safeFloat(l['Catastrophic Charge Rate']), 
-                shatter: safeFloat(l['Shatter Damage']), optRange: safeFloat(l['Optimal Range']), maxRange: safeFloat(l['Maximum Range']), size: l.Size
+                shatter: safeFloat(l['Shatter Damage']), optRange: safeFloat(l['Optimal Range']), maxRange: safeFloat(l['Maximum Range']), size: safeFloat(l.Size)
             });
         });
 
@@ -95,13 +100,212 @@ async function loadData() {
             });
         });
 
-        gadgetOptionsHtml = gadgets.map((g, i) => `<div class="cs-option" data-val="${i}" onmouseenter="showPreview(${i}, 'gadget')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'gadget')">${g.name}</div>`).join('');
-
         document.getElementById('loading').style.display = 'none';
         document.getElementById('app-content').style.display = 'block';
         initUI();
     } catch (e) { console.error(e); }
 }
+
+// --- FLEET BUILDER ENGINE ---
+
+function initUI() {
+    // Generate S1 (Sizes 0, 1) and S2 (Size 2) drop downs
+    laserOptionsS1 = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
+    laserOptionsS2 = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
+    
+    [2, 1, 0].forEach(s => {
+        let f = lasers.map((l, i) => ({l, i})).filter(o => o.l.size === s && o.l.name !== "None");
+        if (f.length) {
+            let groupHtml = `<div class="cs-optgroup">Size ${s} Lasers</div>`;
+            f.forEach(o => groupHtml += `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${o.l.name}</div>`);
+            if (s === 2) laserOptionsS2 += groupHtml;
+            if (s <= 1) laserOptionsS1 += groupHtml;
+        }
+    });
+
+    modOptionsHtml = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'module')">None</div>`;
+    let actives = modules.map((m, i) => ({m, i})).filter(o => o.m.uses > 0);
+    let passives = modules.map((m, i) => ({m, i})).filter(o => o.m.uses === 0 && o.m.name !== "None");
+    if (actives.length) { modOptionsHtml += `<div class="cs-optgroup">Active Modules</div>`; actives.forEach(o => modOptionsHtml += `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'module')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'module')">${o.m.name}</div>`); }
+    if (passives.length) { modOptionsHtml += `<div class="cs-optgroup">Passive Modules</div>`; passives.forEach(o => modOptionsHtml += `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'module')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'module')">${o.m.name}</div>`); }
+
+    gadgetOptionsHtml = gadgets.map((g, i) => `<div class="cs-option" data-val="${i}" onmouseenter="showPreview(${i}, 'gadget')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'gadget')">${g.name}</div>`).join('');
+
+    // Start with a default ship
+    addShip('PROSPECTOR');
+}
+
+function generateId() { return Math.random().toString(36).substr(2, 9); }
+
+function createOperatorHtml(opId, seatName, laserOptions) {
+    return `
+        <div class="setup-card" id="card-${opId}" data-opid="${opId}">
+            <div class="card-header">
+                <h3>${seatName}</h3>
+                <label class="switch"><input type="checkbox" checked onchange="toggleOperator('${opId}', this.checked)"><span class="slider"></span></label>
+            </div>
+            <div class="form-group"><label>Laser Head</label><div class="custom-select" id="cs-laser-${opId}" data-value="0" onclick="toggleCS(this)"><div class="cs-display">None</div><div class="cs-options">${laserOptions}</div></div></div>
+            ${[1,2,3].map(m => `<div class="form-group"><label>Module ${m}</label><div class="custom-select disabled" id="cs-mod${m}-${opId}" data-value="0" onclick="toggleCS(this)"><div class="cs-display">None</div><div class="cs-options">${modOptionsHtml}</div></div></div>`).join('')}
+            <div class="operator-results">
+                <div class="local-stat"><span class="label">Local Ext.</span><span class="value" id="op-ext-${opId}">0.0</span></div>
+                <div class="local-stat"><span class="label">Local Inert</span><span class="value" id="op-inert-${opId}">0%</span></div>
+                <div class="local-stat"><span class="label">Opt. Range</span><span class="value" id="op-optrange-${opId}">0m</span></div>
+                <div class="local-stat"><span class="label">Max Range</span><span class="value" id="op-maxrange-${opId}">0m</span></div>
+            </div>
+        </div>`;
+}
+
+function addShip(type, loadConfig = null) {
+    const container = document.getElementById('fleet-container');
+    const shipId = generateId();
+    const shipDiv = document.createElement('div');
+    shipDiv.className = 'ship-container';
+    shipDiv.id = `ship-${shipId}`;
+    shipDiv.dataset.type = type;
+
+    // Use flex order to keep MOLEs at the top
+    shipDiv.style.order = type === 'MOLE' ? '1' : '2';
+
+    let headerIcon = type === 'MOLE' ? '🟧' : (type === 'PROSPECTOR' ? '🟨' : '🟩');
+    let operatorsHtml = "";
+    let operatorIds = [];
+
+    if (type === 'MOLE') {
+        let seats = ['Center Seat', 'Port Seat', 'Starboard Seat'];
+        seats.forEach(seat => {
+            let opId = generateId();
+            operatorIds.push(opId);
+            operatorsHtml += createOperatorHtml(opId, seat, laserOptionsS2);
+        });
+    } else {
+        let opId = generateId();
+        operatorIds.push(opId);
+        operatorsHtml += createOperatorHtml(opId, 'Pilot Seat', laserOptionsS1);
+    }
+
+    shipDiv.innerHTML = `
+        <div class="ship-header">
+            <h2>${headerIcon} ${type}</h2>
+            <div class="ship-header-controls">
+                <button class="btn btn-export" onclick="exportShip('${shipId}')">Export</button>
+                <button class="btn btn-remove" onclick="removeShip('${shipId}')">Remove</button>
+            </div>
+        </div>
+        <div class="setups-grid">${operatorsHtml}</div>
+    `;
+
+    container.appendChild(shipDiv);
+
+    if (loadConfig) { applyShipConfig(operatorIds, loadConfig); }
+    calculate();
+}
+
+function removeShip(shipId) {
+    document.getElementById(`ship-${shipId}`).remove();
+    calculate();
+}
+
+// --- IMPORT / EXPORT LOGIC ---
+
+function triggerImport(mode) {
+    importMode = mode;
+    document.getElementById('import-file').click();
+}
+
+function handleImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            
+            if (data.type === 'FLEET' || (importMode === 'FLEET' && data.ships)) {
+                if (confirm("Importing a Fleet will overwrite your current setup. Continue?")) {
+                    document.getElementById('fleet-container').innerHTML = '';
+                    data.ships.forEach(s => addShip(s.type, s.operators));
+                }
+            } else if (data.type === 'SHIP' || importMode === 'SHIP') {
+                // Determine ship type fallback if old format
+                let t = data.shipType || (data.operators && data.operators.length > 1 ? 'MOLE' : 'PROSPECTOR');
+                addShip(t, data.operators);
+            }
+        } catch (err) { alert("Invalid JSON file!"); }
+        event.target.value = ""; // Reset input
+    };
+    reader.readAsText(file);
+}
+
+function exportFleet() {
+    let fleet = { type: 'FLEET', ships: [] };
+    document.querySelectorAll('.ship-container').forEach(ship => {
+        fleet.ships.push(extractShipData(ship));
+    });
+    downloadJson(fleet, 'minecalc-fleet.json');
+}
+
+function exportShip(shipId) {
+    const ship = document.getElementById(`ship-${shipId}`);
+    let data = extractShipData(ship);
+    data.type = 'SHIP';
+    downloadJson(data, `minecalc-${data.shipType.toLowerCase()}.json`);
+}
+
+function extractShipData(shipDiv) {
+    let data = { shipType: shipDiv.dataset.type, operators: [] };
+    shipDiv.querySelectorAll('.setup-card').forEach(card => {
+        let opId = card.dataset.opid;
+        let laserId = document.getElementById(`cs-laser-${opId}`).dataset.value;
+        data.operators.push({
+            enabled: !card.classList.contains('off'),
+            laser: lasers[laserId].name,
+            m1: modules[document.getElementById(`cs-mod1-${opId}`).dataset.value].name,
+            m2: modules[document.getElementById(`cs-mod2-${opId}`).dataset.value].name,
+            m3: modules[document.getElementById(`cs-mod3-${opId}`).dataset.value].name
+        });
+    });
+    return data;
+}
+
+function applyShipConfig(operatorIds, opConfigs) {
+    operatorIds.forEach((opId, index) => {
+        let conf = opConfigs[index];
+        if (!conf) return;
+
+        if (conf.enabled === false) {
+            document.getElementById(`card-${opId}`).querySelector('.switch input').checked = false;
+            toggleOperator(opId, false);
+        }
+
+        const setSelect = (elId, nameToFind, list) => {
+            let idx = list.findIndex(i => i.name === nameToFind);
+            if (idx > 0) {
+                let el = document.getElementById(elId);
+                el.dataset.value = idx;
+                el.querySelector('.cs-display').innerText = list[idx].name;
+            }
+        };
+
+        setSelect(`cs-laser-${opId}`, conf.laser, lasers);
+        handleLaserChange(opId); // unlock module slots
+        setSelect(`cs-mod1-${opId}`, conf.m1, modules);
+        setSelect(`cs-mod2-${opId}`, conf.m2, modules);
+        setSelect(`cs-mod3-${opId}`, conf.m3, modules);
+    });
+}
+
+function downloadJson(obj, filename) {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obj, null, 2));
+    const el = document.createElement('a');
+    el.setAttribute("href", dataStr);
+    el.setAttribute("download", filename);
+    document.body.appendChild(el);
+    el.click();
+    el.remove();
+}
+
+// --- STANDARD UI LOGIC ---
 
 function toggleCS(container) {
     if (container.classList.contains('disabled')) return;
@@ -122,6 +326,18 @@ function selectCSOption(e, el, type) {
     else calculate();
 }
 
+function toggleOperator(opId, state) { document.getElementById(`card-${opId}`).classList.toggle('off', !state); calculate(); }
+
+function handleLaserChange(opId) {
+    let l = lasers[document.getElementById(`cs-laser-${opId}`).dataset.value];
+    for (let m=1; m<=3; m++) {
+        let el = document.getElementById(`cs-mod${m}-${opId}`);
+        if (m <= l.slots) el.classList.remove('disabled');
+        else { el.classList.add('disabled'); el.dataset.value = 0; el.querySelector('.cs-display').innerText = 'None'; }
+    }
+    calculate();
+}
+
 function addGadgetRow() {
     const list = document.getElementById('gadget-list');
     const row = document.createElement('div');
@@ -140,111 +356,7 @@ function addGadgetRow() {
 function toggleAccordion(headerElement) {
     headerElement.classList.toggle('active');
     const contentElement = headerElement.nextElementSibling;
-    
-    if (headerElement.classList.contains('active')) {
-        contentElement.style.display = 'block';
-    } else {
-        contentElement.style.display = 'none';
-    }
-}
-
-// RockReader Logic
-function findOres() {
-    const inputSignatureStr = document.getElementById('signatureInput').value;
-    const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = "";
-
-    const signature = parseInt(inputSignatureStr);
-    if (isNaN(signature) || signature <= 0) {
-        resultsDiv.innerHTML = "<div style='color:#ff6b6b; text-align:center; padding: 10px;'>❌ Please enter a valid number.</div>";
-        return;
-    }
-
-    let matches = [];
-    for (const ore of ores) {
-        if (signature % ore.signature === 0) {
-            const count = signature / ore.signature;
-            matches.push({
-                name: ore.name,
-                count: count
-            });
-        }
-    }
-
-    if (matches.length > 0) {
-        resultsDiv.innerHTML = "<div class='stat-title' style='margin-bottom: 12px;'>Possible Matches:</div>" +
-            matches.map(m => `
-                <div class="match-item">
-                    <span class="match-name">${m.name}</span>
-                    <span class="match-count">${m.count}x node cluster</span>
-                </div>
-            `).join('');
-    } else {
-        resultsDiv.innerHTML = `
-            <div style='text-align:center; padding: 20px;'>
-                <div class='stat-title'>No perfect matches found.</div>
-                <div style='color: #a1a6b0; font-size:0.9rem; margin-top: 5px;'>The initial signature may not be perfectly precise, or it's a mixed cluster.</div>
-            </div>`;
-    }
-}
-
-// Safely attach the Enter key listener after the page loads
-document.addEventListener('DOMContentLoaded', function() {
-    const sigInput = document.getElementById('signatureInput');
-    if (sigInput) {
-        sigInput.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Stops the page from accidentally refreshing
-                findOres();
-            }
-        });
-    }
-});
-
-function initUI() {
-    let laserOptions = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
-    [2, 1, 0].forEach(s => {
-        let f = lasers.map((l, i) => ({l, i})).filter(o => o.l.size == s && o.l.name !== "None");
-        if (f.length) {
-            laserOptions += `<div class="cs-optgroup">Size ${s} Lasers</div>`;
-            f.forEach(o => laserOptions += `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${o.l.name}</div>`);
-        }
-    });
-
-    let modOptions = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'module')">None</div>`;
-    let actives = modules.map((m, i) => ({m, i})).filter(o => o.m.uses > 0);
-    let passives = modules.map((m, i) => ({m, i})).filter(o => o.m.uses === 0 && o.m.name !== "None");
-    if (actives.length) { modOptions += `<div class="cs-optgroup">Active Modules</div>`; actives.forEach(o => modOptions += `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'module')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'module')">${o.m.name}</div>`); }
-    if (passives.length) { modOptions += `<div class="cs-optgroup">Passive Modules</div>`; passives.forEach(o => modOptions += `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'module')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'module')">${o.m.name}</div>`); }
-
-    const container = document.getElementById('setups-container');
-    for (let i = 0; i < NUM_SETUPS; i++) {
-        const card = document.createElement('div');
-        card.className = 'setup-card'; card.id = `card-${i}`;
-        card.innerHTML = `
-            <div class="card-header"><h3>Operator ${i + 1}</h3><label class="switch"><input type="checkbox" checked onchange="toggleOperator(${i}, this.checked)"><span class="slider"></span></label></div>
-            <div class="form-group"><label>Laser Head</label><div class="custom-select" id="cs-laser-${i}" data-value="0" onclick="toggleCS(this)"><div class="cs-display">None</div><div class="cs-options">${laserOptions}</div></div></div>
-            ${[1,2,3].map(m => `<div class="form-group"><label>Module ${m}</label><div class="custom-select disabled" id="cs-mod${m}-${i}" data-value="0" onclick="toggleCS(this)"><div class="cs-display">None</div><div class="cs-options">${modOptions}</div></div></div>`).join('')}
-            <div class="operator-results">
-                <div class="local-stat"><span class="label">Local Ext.</span><span class="value" id="op-ext-${i}">0.0</span></div>
-                <div class="local-stat"><span class="label">Local Inert</span><span class="value" id="op-inert-${i}">0%</span></div>
-                <div class="local-stat"><span class="label">Opt. Range</span><span class="value" id="op-optrange-${i}">0m</span></div>
-                <div class="local-stat"><span class="label">Max Range</span><span class="value" id="op-maxrange-${i}">0m</span></div>
-            </div>`;
-        container.appendChild(card);
-    }
-}
-
-function toggleOperator(i, state) { document.getElementById(`card-${i}`).classList.toggle('off', !state); calculate(); }
-
-function handleLaserChange(i) {
-    let l = lasers[document.getElementById(`cs-laser-${i}`).dataset.value];
-    for (let m=1; m<=3; m++) {
-        let el = document.getElementById(`cs-mod${m}-${i}`);
-        if (m <= l.slots) el.classList.remove('disabled');
-        else { el.classList.add('disabled'); el.dataset.value = 0; el.querySelector('.cs-display').innerText = 'None'; }
-    }
-    calculate();
+    contentElement.style.display = headerElement.classList.contains('active') ? 'block' : 'none';
 }
 
 function calcMulti(arr) { if (!arr.length) return 0; let p = 1; arr.forEach(v => p *= (1 + (v/100))); return (p - 1) * 100; }
@@ -262,21 +374,23 @@ function calculate() {
     let gadgetRes = [], gadgetInst = []; 
     let win = [], chg = [], over = [], shat = [], clust = [];
 
-    for (let i=0; i<NUM_SETUPS; i++) {
-        const card = document.getElementById(`card-${i}`);
-        if (!card || card.classList.contains('off')) {
-            const extEl = document.getElementById(`op-ext-${i}`);
-            const inertEl = document.getElementById(`op-inert-${i}`);
+    // Loop through ALL active operator cards on the page dynamically
+    document.querySelectorAll('.setup-card').forEach(card => {
+        let opId = card.dataset.opid;
+        if (card.classList.contains('off')) {
+            let extEl = document.getElementById(`op-ext-${opId}`);
+            let inertEl = document.getElementById(`op-inert-${opId}`);
             if (extEl) extEl.innerText = '0.0';
             if (inertEl) inertEl.innerText = '0%';
-            continue;
+            return;
         }
-        let l = lasers[document.getElementById(`cs-laser-${i}`).dataset.value];
-        if (!l || l.name === "None") continue;
+
+        let l = lasers[document.getElementById(`cs-laser-${opId}`).dataset.value];
+        if (!l || l.name === "None") return;
 
         let pMod = 0, eMod = 0, opInert = [l.inert || 0];
         [1,2,3].forEach(m => {
-            let mod = modules[document.getElementById(`cs-mod${m}-${i}`).dataset.value];
+            let mod = modules[document.getElementById(`cs-mod${m}-${opId}`).dataset.value];
             if (!mod || mod.name === "None") return;
             pMod += mod.power; eMod += mod.extraction; opInert.push(mod.inert || 0);
             if (mod.resistance) fleetRes.push(mod.resistance); 
@@ -296,11 +410,11 @@ function calculate() {
         if (l.overcharge) over.push(l.overcharge); 
         if (l.shatter) shat.push(l.shatter);
 
-        document.getElementById(`op-ext-${i}`).innerText = (l.extraction * (1 + eMod/100)).toFixed(1);
-        updateStat(`op-inert-${i}`, calcMulti(opInert), true);
-        document.getElementById(`op-optrange-${i}`).innerText = (l.optRange || 0) + 'm';
-        document.getElementById(`op-maxrange-${i}`).innerText = (l.maxRange || 0) + 'm';
-    }
+        document.getElementById(`op-ext-${opId}`).innerText = (l.extraction * (1 + eMod/100)).toFixed(1);
+        updateStat(`op-inert-${opId}`, calcMulti(opInert), true);
+        document.getElementById(`op-optrange-${opId}`).innerText = (l.optRange || 0) + 'm';
+        document.getElementById(`op-maxrange-${opId}`).innerText = (l.maxRange || 0) + 'm';
+    });
 
     document.querySelectorAll('.gadget-select').forEach(el => {
         let g = gadgets[el.dataset.value];
@@ -395,6 +509,55 @@ function calculate() {
         document.getElementById('crack-inst-status').style.backgroundColor = "var(--bg-color)";
     }
 }
+
+// RockReader Logic
+function findOres() {
+    const inputSignatureStr = document.getElementById('signatureInput').value;
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = "";
+
+    const signature = parseInt(inputSignatureStr);
+    if (isNaN(signature) || signature <= 0) {
+        resultsDiv.innerHTML = "<div style='color:#ff6b6b; text-align:center; padding: 10px;'>❌ Please enter a valid number.</div>";
+        return;
+    }
+
+    let matches = [];
+    for (const ore of ores) {
+        if (signature % ore.signature === 0) {
+            const count = signature / ore.signature;
+            matches.push({ name: ore.name, count: count });
+        }
+    }
+
+    if (matches.length > 0) {
+        resultsDiv.innerHTML = "<div class='stat-title' style='margin-bottom: 12px;'>Possible Matches:</div>" +
+            matches.map(m => `
+                <div class="match-item">
+                    <span class="match-name">${m.name}</span>
+                    <span class="match-count">${m.count}x node cluster</span>
+                </div>
+            `).join('');
+    } else {
+        resultsDiv.innerHTML = `
+            <div style='text-align:center; padding: 20px;'>
+                <div class='stat-title'>No perfect matches found.</div>
+                <div style='color: #a1a6b0; font-size:0.9rem; margin-top: 5px;'>The initial signature may not be perfectly precise, or it's a mixed cluster.</div>
+            </div>`;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const sigInput = document.getElementById('signatureInput');
+    if (sigInput) {
+        sigInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); 
+                findOres();
+            }
+        });
+    }
+});
 
 window.onclick = (e) => { if (!e.target.closest('.custom-select')) document.querySelectorAll('.custom-select').forEach(el => { el.classList.remove('open'); el.querySelector('.cs-options').style.display='none'; }); };
 window.onload = loadData;

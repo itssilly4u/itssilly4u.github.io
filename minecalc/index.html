@@ -17,9 +17,26 @@
 <div id="loading">Loading UEX Data Files...</div>
 
 <div id="app-content" class="container">
-    <h1>MineCalc <span style="font-size: 0.5em; color: var(--text-muted);">| Loadout Calculator</span></h1>
+    <h1>MineCalc <span style="font-size: 0.5em; color: var(--text-muted);">| Fleet Builder</span></h1>
     
-    <div class="setups-grid" id="setups-container"></div>
+    <div class="fleet-controls global-card">
+        <div class="control-group">
+            <span class="control-label">Add Ship:</span>
+            <button class="btn" onclick="addShip('MOLE')">+ MOLE</button>
+            <button class="btn" onclick="addShip('PROSPECTOR')">+ Prospector</button>
+            <button class="btn" onclick="addShip('GOLEM')">+ Golem</button>
+        </div>
+        <div class="control-group" style="border-left: 2px solid var(--border); padding-left: 15px;">
+            <span class="control-label">Data:</span>
+            <button class="btn btn-export" onclick="exportFleet()">💾 Export Fleet</button>
+            <button class="btn btn-import" onclick="triggerImport('FLEET')">📂 Import Fleet</button>
+            <button class="btn btn-import" onclick="triggerImport('SHIP')">📄 Import Ship</button>
+            <input type="file" id="import-file" accept=".json" style="display: none;" onchange="handleImport(event)">
+        </div>
+    </div>
+
+    <div id="fleet-container" style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 20px;">
+        </div>
 
     <div class="global-card">
         <div class="gadget-header">
