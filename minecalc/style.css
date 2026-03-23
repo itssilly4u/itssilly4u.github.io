@@ -305,3 +305,82 @@ footer { background-color: var(--panel-bg); border-top: 2px solid var(--border);
 .edit-icon:hover {
     opacity: 1;
 }
+
+/* --- RESPONSIVE FLEET LAYOUT & MOBILE FIXES --- */
+
+/* Fix the main container to wrap items instead of stacking them */
+#fleet-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Base Ship Container: Add border-box to stop mobile clipping */
+.ship-container {
+    box-sizing: border-box; /* This stops padding from breaking the width! */
+    min-width: 280px;       /* Don't let boxes get too tiny */
+    max-width: 100%;        /* Never bleed off the screen */
+}
+
+/* MOLEs always take up the full row (100%) */
+.ship-container[data-type="MOLE"] {
+    flex: 1 1 100%;
+}
+
+/* Prospectors & Golems take up 1/3 of the row on PC */
+.ship-container[data-type="PROSPECTOR"],
+.ship-container[data-type="GOLEM"] {
+    flex: 1 1 calc(33.333% - 15px); /* Minus 15px to account for the gap */
+}
+
+/* Fix Operator Cards so they never overflow on mobile */
+.setup-card {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%; 
+    overflow: hidden; /* Keep all the text and buttons safely inside */
+}
+
+/* Make the internal grid responsive (Stacks automatically on small screens) */
+.setups-grid {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    width: 100%;
+}
+
+/* Force long laser/module names to wrap instead of breaking the box */
+.cs-display, .cs-option {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* --- MEDIA QUERIES FOR SMALLER SCREENS --- */
+
+/* On Tablets: Put 2 Prospectors/Golems per row */
+@media (max-width: 950px) {
+    .ship-container[data-type="PROSPECTOR"],
+    .ship-container[data-type="GOLEM"] {
+        flex: 1 1 calc(50% - 10px); 
+    }
+}
+
+/* On Phones: Stack everything 1 per row and fix headers */
+@media (max-width: 650px) {
+    .ship-container[data-type="PROSPECTOR"],
+    .ship-container[data-type="GOLEM"] {
+        flex: 1 1 100%; 
+    }
+    
+    .ship-header {
+        flex-direction: column; /* Stack the title and buttons on mobile */
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .ship-title-container {
+        flex-wrap: wrap; /* Keep the edit box from running off screen */
+        width: 100%;
+    }
+}
