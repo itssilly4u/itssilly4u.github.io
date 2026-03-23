@@ -209,6 +209,28 @@ function addShip(type, loadConfig = null, customName = null) {
 
     container.appendChild(shipDiv);
 
+    // --- NEW: Auto-Equip Stock Lasers ---
+    if (!loadConfig) {
+        let defaultLaser = "None";
+        if (type === 'MOLE') {
+            let match = lasers.find(l => l.size === 2 && l.name.toLowerCase().includes('arbor'));
+            if (match) defaultLaser = match.name;
+            loadConfig = [
+                { enabled: true, laser: defaultLaser, m1: "None", m2: "None", m3: "None" },
+                { enabled: true, laser: defaultLaser, m1: "None", m2: "None", m3: "None" },
+                { enabled: true, laser: defaultLaser, m1: "None", m2: "None", m3: "None" }
+            ];
+        } else if (type === 'PROSPECTOR') {
+            let match = lasers.find(l => l.size === 1 && l.name.toLowerCase().includes('arbor'));
+            if (match) defaultLaser = match.name;
+            loadConfig = [ { enabled: true, laser: defaultLaser, m1: "None", m2: "None", m3: "None" } ];
+        } else if (type === 'GOLEM') {
+            let match = lasers.find(l => l.name.toLowerCase().includes('pitman'));
+            if (match) defaultLaser = match.name;
+            loadConfig = [ { enabled: true, laser: defaultLaser, m1: "None", m2: "None", m3: "None" } ];
+        }
+    }
+
     if (loadConfig) { applyShipConfig(operatorIds, loadConfig); }
     calculate();
 }
