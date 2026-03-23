@@ -157,7 +157,7 @@ function createOperatorHtml(opId, seatName, laserOptions) {
         </div>`;
 }
 
-function addShip(type, loadConfig = null) {
+function addShip(type, loadConfig = null, customName = null) {
     const container = document.getElementById('fleet-container');
     const shipId = generateId();
     const shipDiv = document.createElement('div');
@@ -165,17 +165,13 @@ function addShip(type, loadConfig = null) {
     shipDiv.id = `ship-${shipId}`;
     shipDiv.dataset.type = type;
 
-    // MAGICAL SORTING: Force ships into perfect groups based on type
-    if (type === 'MOLE') {
-        shipDiv.style.order = '1';
-    } else if (type === 'PROSPECTOR') {
-        shipDiv.style.order = '2';
-    } else if (type === 'GOLEM') {
-        shipDiv.style.order = '3';
-    }
+    // Force ships into perfect groups based on type
+    if (type === 'MOLE') { shipDiv.style.order = '1'; } 
+    else if (type === 'PROSPECTOR') { shipDiv.style.order = '2'; } 
+    else if (type === 'GOLEM') { shipDiv.style.order = '3'; }
 
-    // Set Manufacturer Colors
     let headerIcon = type === 'MOLE' ? '🟧' : (type === 'PROSPECTOR' ? '🟦' : '🟨');
+    let displayName = customName ? customName : type; // Use custom name if it exists!
     
     let operatorsHtml = "";
     let operatorIds = [];
@@ -195,7 +191,12 @@ function addShip(type, loadConfig = null) {
 
     shipDiv.innerHTML = `
         <div class="ship-header">
-            <h2>${headerIcon} ${type}</h2>
+            <div class="ship-title-container">
+                <h2>${headerIcon}</h2>
+                <span class="ship-title-text" id="title-text-${shipId}" onclick="editShipName('${shipId}')">${displayName}</span>
+                <span class="edit-icon" id="edit-icon-${shipId}" onclick="editShipName('${shipId}')">✏️</span>
+                <input type="text" class="ship-name-input" id="title-input-${shipId}" value="${displayName}" onblur="saveShipName('${shipId}')" onkeydown="if(event.key === 'Enter') saveShipName('${shipId}')">
+            </div>
             <div class="ship-header-controls">
                 <button class="btn btn-export" onclick="exportShip('${shipId}')">Export</button>
                 <button class="btn btn-remove" onclick="removeShip('${shipId}')">Remove</button>
@@ -208,6 +209,38 @@ function addShip(type, loadConfig = null) {
 
     if (loadConfig) { applyShipConfig(operatorIds, loadConfig); }
     calculate();
+}
+
+// --- NEW RENAMING LOGIC ---
+function editShipName(shipId) {
+    document.getElementById(`title-text-${shipId}`).style.display = 'none';
+    document.getElementById(`edit-icon-${shipId}`).style.display = 'none';
+    let input = document.getElementById(`title-input-${shipId}`);
+    input.style.display = 'block';
+    input.focus();
+    
+    // Move cursor to the end of the text
+    let val = input.value;
+    input.value = '';
+    input.value = val;
+}
+
+function saveShipName(shipId) {
+    let input = document.getElementById(`title-input-${shipId}`);
+    let text = document.getElementById(`title-text-${shipId}`);
+    let icon = document.getElementById(`edit-icon-${shipId}`);
+
+    let newName = input.value.trim();
+    if (newName === '') {
+        // If they leave it blank, reset it to the default ship type
+        newName = document.getElementById(`ship-${shipId}`).dataset.type;
+        input.value = newName;
+    }
+
+    text.innerText = newName;
+    input.style.display = 'none';
+    text.style.display = 'block';
+    icon.style.display = 'block';
 }
 
 function removeShip(shipId) {
@@ -231,38 +264,27 @@ function handleImport(event) {
         try {
             const data = JSON.parse(e.target.result);
             
-            // --- SECURITY CHECK ---
-            if (!data._hash) {
-                alert("❌ Invalid File: Missing security signature. Please ensure you are uploading a valid MineCalc config.");
-                return;
-            }
-
-            // Save the provided hash, then delete it from the object to check the original data
+            // SECURITY CHECK
+            if (!data._hash) { alert("❌ Invalid File: Missing security signature."); return; }
             const providedHash = data._hash;
             delete data._hash; 
-            
-            // Recalculate the hash
-            const calculatedHash = generateHash(JSON.stringify(data));
-            
-            if (providedHash !== calculatedHash) {
-                alert("❌ Corrupted File: The file contents have been modified, broken, or tampered with.");
-                return;
+            if (providedHash !== generateHash(JSON.stringify(data))) {
+                alert("❌ Corrupted File: The contents have been modified or tampered with."); return;
             }
-            // --- END SECURITY CHECK ---
 
             if (data.type === 'FLEET' || (importMode === 'FLEET' && data.ships)) {
                 if (confirm("Importing a Fleet will overwrite your current setup. Continue?")) {
                     document.getElementById('fleet-container').innerHTML = '';
-                    data.ships.forEach(s => addShip(s.type, s.operators));
+                    // Added s.customName here!
+                    data.ships.forEach(s => addShip(s.shipType || s.type, s.operators, s.customName));
                 }
             } else if (data.type === 'SHIP' || importMode === 'SHIP') {
                 let t = data.shipType || (data.operators && data.operators.length > 1 ? 'MOLE' : 'PROSPECTOR');
-                addShip(t, data.operators);
+                // Added data.customName here!
+                addShip(t, data.operators, data.customName);
             }
-        } catch (err) { 
-            alert("❌ Invalid JSON file format!"); 
-        }
-        event.target.value = ""; // Reset input so you can upload the same file again if needed
+        } catch (err) { alert("❌ Invalid JSON file format!"); }
+        event.target.value = ""; 
     };
     reader.readAsText(file);
 }
@@ -279,7 +301,18 @@ function exportShip(shipId) {
     const ship = document.getElementById(`ship-${shipId}`);
     let data = extractShipData(ship);
     data.type = 'SHIP';
-    downloadJsonWithHash(data, `minecalc-${data.shipType.toLowerCase()}.json`);
+    
+    // Format the filename!
+    let filename = `minecalc-${data.shipType.toLowerCase()}.json`;
+    
+    // If they changed the name from the default, format it for the download
+    if (data.customName && data.customName !== data.shipType) {
+        // Replaces spaces with underscores and removes weird symbols
+        let safeName = data.customName.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_');
+        filename = `${safeName}.json`;
+    }
+    
+    downloadJsonWithHash(data, filename);
 }
 
 function downloadJsonWithHash(obj, filename) {
@@ -303,7 +336,10 @@ function downloadJsonWithHash(obj, filename) {
 }
 
 function extractShipData(shipDiv) {
-    let data = { shipType: shipDiv.dataset.type, operators: [] };
+    // Grab the custom text from the title
+    let titleText = shipDiv.querySelector('.ship-title-text').innerText;
+    let data = { shipType: shipDiv.dataset.type, customName: titleText, operators: [] };
+    
     shipDiv.querySelectorAll('.setup-card').forEach(card => {
         let opId = card.dataset.opid;
         let laserId = document.getElementById(`cs-laser-${opId}`).dataset.value;

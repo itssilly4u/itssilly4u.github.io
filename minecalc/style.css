@@ -271,3 +271,37 @@ footer { background-color: var(--panel-bg); border-top: 2px solid var(--border);
 .ship-container .setups-grid {
     margin-bottom: 0;
 }
+
+/* Custom Ship Name Editor */
+.ship-title-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.ship-title-text {
+    font-size: 1.4em;
+    color: #fff;
+    margin: 0;
+    font-weight: bold;
+    cursor: pointer;
+}
+.ship-name-input {
+    font-size: 1.2em;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--accent);
+    background: var(--bg-color);
+    color: #fff;
+    display: none; /* Hidden by default */
+    font-weight: bold;
+    font-family: inherit;
+}
+.edit-icon {
+    font-size: 0.8em;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+}
+.edit-icon:hover {
+    opacity: 1;
+}
