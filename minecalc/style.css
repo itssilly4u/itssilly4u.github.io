@@ -172,11 +172,37 @@ footer { margin-top: 50px; text-align: center; padding: 20px; border-top: 1px so
     }
 }
 
-.ship-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
-.ship-header-controls { display: flex; gap: 10px; }
+/* -- SHIP HEADERS & MOBILE CLIPPING FIX -- */
+.ship-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-start; /* Aligns items to the top if they wrap */
+    margin-bottom: 20px; 
+    padding-bottom: 10px; 
+    border-bottom: 1px solid var(--border); 
+    flex-wrap: wrap; 
+    gap: 10px; 
+}
+
+.ship-header-controls { 
+    display: flex; 
+    gap: 6px; /* Slightly tighter gap between buttons */
+    flex-wrap: wrap; /* Forces buttons to the next line if they don't fit */
+}
+
+/* Make buttons slightly slimmer inside the ship cards so they fit 3-across easier */
+.ship-header-controls .btn {
+    padding: 6px 10px;
+    font-size: 0.85em;
+}
 
 /* Custom Ship Name Editor */
-.ship-title-container { display: flex; align-items: center; gap: 10px; }
+.ship-title-container { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    flex-wrap: wrap; /* Allows super long custom names to wrap */
+}
 .ship-title-text { font-size: 1.4em; color: #fff; margin: 0; font-weight: bold; cursor: pointer; }
 .ship-name-input { font-size: 1.2em; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--accent); background: var(--bg-color); color: #fff; display: none; font-weight: bold; font-family: inherit; width: 150px; }
 .edit-icon { font-size: 0.8em; cursor: pointer; opacity: 0.4; transition: opacity 0.2s; }
