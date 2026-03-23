@@ -109,7 +109,7 @@ async function loadData() {
 // --- FLEET BUILDER ENGINE ---
 
 function initUI() {
-    // Generate S1 (Sizes 0, 1) and S2 (Size 2) drop downs
+    // Generate S1 (Size 1 only) and S2 (Size 2 only) drop downs
     laserOptionsS1 = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
     laserOptionsS2 = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
     
@@ -118,8 +118,10 @@ function initUI() {
         if (f.length) {
             let groupHtml = `<div class="cs-optgroup">Size ${s} Lasers</div>`;
             f.forEach(o => groupHtml += `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${o.l.name}</div>`);
+            
+            // Strict filtering so S0 doesn't bleed into S1
             if (s === 2) laserOptionsS2 += groupHtml;
-            if (s <= 1) laserOptionsS1 += groupHtml;
+            if (s === 1) laserOptionsS1 += groupHtml; 
         }
     });
 
@@ -131,7 +133,7 @@ function initUI() {
 
     gadgetOptionsHtml = gadgets.map((g, i) => `<div class="cs-option" data-val="${i}" onmouseenter="showPreview(${i}, 'gadget')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'gadget')">${g.name}</div>`).join('');
 
-    // Start with a default ship
+    // Start with a MOLE as the default ship
     addShip('MOLE');
 }
 
@@ -163,10 +165,18 @@ function addShip(type, loadConfig = null) {
     shipDiv.id = `ship-${shipId}`;
     shipDiv.dataset.type = type;
 
-    // Use flex order to keep MOLEs at the top
-    shipDiv.style.order = type === 'MOLE' ? '1' : '2';
+    // MAGICAL SORTING: Force ships into perfect groups based on type
+    if (type === 'MOLE') {
+        shipDiv.style.order = '1';
+    } else if (type === 'PROSPECTOR') {
+        shipDiv.style.order = '2';
+    } else if (type === 'GOLEM') {
+        shipDiv.style.order = '3';
+    }
 
+    // Set Manufacturer Colors
     let headerIcon = type === 'MOLE' ? '🟧' : (type === 'PROSPECTOR' ? '🟦' : '🟨');
+    
     let operatorsHtml = "";
     let operatorIds = [];
 
@@ -221,18 +231,38 @@ function handleImport(event) {
         try {
             const data = JSON.parse(e.target.result);
             
+            // --- SECURITY CHECK ---
+            if (!data._hash) {
+                alert("❌ Invalid File: Missing security signature. Please ensure you are uploading a valid MineCalc config.");
+                return;
+            }
+
+            // Save the provided hash, then delete it from the object to check the original data
+            const providedHash = data._hash;
+            delete data._hash; 
+            
+            // Recalculate the hash
+            const calculatedHash = generateHash(JSON.stringify(data));
+            
+            if (providedHash !== calculatedHash) {
+                alert("❌ Corrupted File: The file contents have been modified, broken, or tampered with.");
+                return;
+            }
+            // --- END SECURITY CHECK ---
+
             if (data.type === 'FLEET' || (importMode === 'FLEET' && data.ships)) {
                 if (confirm("Importing a Fleet will overwrite your current setup. Continue?")) {
                     document.getElementById('fleet-container').innerHTML = '';
                     data.ships.forEach(s => addShip(s.type, s.operators));
                 }
             } else if (data.type === 'SHIP' || importMode === 'SHIP') {
-                // Determine ship type fallback if old format
                 let t = data.shipType || (data.operators && data.operators.length > 1 ? 'MOLE' : 'PROSPECTOR');
                 addShip(t, data.operators);
             }
-        } catch (err) { alert("Invalid JSON file!"); }
-        event.target.value = ""; // Reset input
+        } catch (err) { 
+            alert("❌ Invalid JSON file format!"); 
+        }
+        event.target.value = ""; // Reset input so you can upload the same file again if needed
     };
     reader.readAsText(file);
 }
@@ -242,14 +272,34 @@ function exportFleet() {
     document.querySelectorAll('.ship-container').forEach(ship => {
         fleet.ships.push(extractShipData(ship));
     });
-    downloadJson(fleet, 'minecalc-fleet.json');
+    downloadJsonWithHash(fleet, 'minecalc-fleet.json');
 }
 
 function exportShip(shipId) {
     const ship = document.getElementById(`ship-${shipId}`);
     let data = extractShipData(ship);
     data.type = 'SHIP';
-    downloadJson(data, `minecalc-${data.shipType.toLowerCase()}.json`);
+    downloadJsonWithHash(data, `minecalc-${data.shipType.toLowerCase()}.json`);
+}
+
+function downloadJsonWithHash(obj, filename) {
+    // 1. Turn the pure data into a string
+    const jsonString = JSON.stringify(obj);
+    
+    // 2. Generate the unique signature
+    const hash = generateHash(jsonString);
+    
+    // 3. Attach the signature to the object
+    obj._hash = hash; 
+    
+    // 4. Download it
+    const finalStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obj, null, 2));
+    const el = document.createElement('a');
+    el.setAttribute("href", finalStr);
+    el.setAttribute("download", filename);
+    document.body.appendChild(el);
+    el.click();
+    el.remove();
 }
 
 function extractShipData(shipDiv) {
@@ -561,3 +611,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.onclick = (e) => { if (!e.target.closest('.custom-select')) document.querySelectorAll('.custom-select').forEach(el => { el.classList.remove('open'); el.querySelector('.cs-options').style.display='none'; }); };
 window.onload = loadData;
+
+// --- SECURITY & VALIDATION ---
+function generateHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    // Return as a positive hex string for a clean look
+    return Math.abs(hash).toString(16); 
+}
