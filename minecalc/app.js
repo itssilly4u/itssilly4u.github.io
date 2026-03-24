@@ -40,8 +40,8 @@ function formatStatPreview(item, type) {
         let d = parseFloat(val).toFixed(1).replace('.0','');
         if (!base && val > 0) d = '+' + d;
         let c = base ? '' : ((val > 0 ? !inv : inv) ? 'style="color:var(--good-stat);"' : 'style="color:var(--bad-stat);"');
-        html += `<div class="preview-stat-row"><span class="preview-label">Module Slots</span><span>${item.slots}</span></div>`;
         html += `<div class="preview-stat-row"><span class="preview-label">${label}</span><span ${c}>${d}${suffix}</span></div>`;
+        addStat('Module Slots', item.slots, '', false, true);
     };
     if (type === 'laser') {
         html += `<div class="preview-stat-row"><span class="preview-label">Power</span><span>${Math.round(item.powerMin)}-${Math.round(item.powerMax)}</span></div>`;
