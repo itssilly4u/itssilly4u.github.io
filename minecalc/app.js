@@ -169,7 +169,7 @@ function addShip(type, loadConfig = null, customName = null) {
     else if (type === 'GOLEM') { shipDiv.style.order = '3'; }
 
     let headerIcon = type === 'MOLE' ? '🟧' : (type === 'PROSPECTOR' ? '🟦' : '🟨');
-    let displayName = customName ? customName : type; 
+    let displayName = customName ? escapeHTML(customName) : type;
     
     let operatorsHtml = "";
     let operatorIds = [];
@@ -197,7 +197,7 @@ function addShip(type, loadConfig = null, customName = null) {
                 <h2>${headerIcon}</h2>
                 <span class="ship-title-text" id="title-text-${shipId}" onclick="editShipName('${shipId}')">${displayName}</span>
                 <span class="edit-icon" id="edit-icon-${shipId}" onclick="editShipName('${shipId}')">✏️</span>
-                <input type="text" class="ship-name-input" id="title-input-${shipId}" value="${displayName}" onblur="saveShipName('${shipId}')" onkeydown="if(event.key === 'Enter') saveShipName('${shipId}')">
+                <input type="text" class="ship-name-input" id="title-input-${shipId}" value="${displayName}" maxlength="50" onblur="saveShipName('${shipId}')" onkeydown="if(event.key === 'Enter') saveShipName('${shipId}')">
             </div>
             <div class="ship-header-controls">
                 <button class="btn btn-export" onclick="exportShip('${shipId}')">Export</button>
@@ -276,6 +276,17 @@ function saveShipName(shipId) {
 }
 
 // --- SECURITY & VALIDATION ---
+
+function escapeHTML(str) {
+    if (!str) return "";
+    return str.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 function generateHash(str) {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -295,11 +306,19 @@ function handleImport(event) {
     const file = event.target.files[0];
     if (!file) return;
 
+    // --- SECURITY: FILE SIZE LIMIT ---
+    if (file.size > 15360) {
+        alert("❌ File is too large. Valid loadouts are very small files.");
+        event.target.value = ""; 
+        return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
         try {
             const data = JSON.parse(e.target.result);
             
+            // --- SECURITY: HASH VALIDATION ---
             if (!data._hash) { alert("❌ Invalid File: Missing security signature."); return; }
             const providedHash = data._hash;
             delete data._hash; 
@@ -307,7 +326,13 @@ function handleImport(event) {
                 alert("❌ Corrupted File: The contents have been modified or tampered with."); return;
             }
 
-            if (data.type === 'FLEET' || (importMode === 'FLEET' && data.ships)) {
+            // --- SECURITY: FLEET SIZE LIMIT ---
+            // Prevents someone from modifying the JSON to spawn 10,000 ships and freezing the PC.
+            if (data.type === 'FLEET' && data.ships) {
+                if (data.ships.length > 20) {
+                    alert("❌ Import failed: Fleet exceeds the maximum limit of 20 ships.");
+                    return;
+                }
                 if (confirm("Importing a Fleet will overwrite your current setup. Continue?")) {
                     document.getElementById('fleet-container').innerHTML = '';
                     data.ships.forEach(s => addShip(s.shipType || s.type, s.operators, s.customName));
@@ -316,7 +341,9 @@ function handleImport(event) {
                 let t = data.shipType || (data.operators && data.operators.length > 1 ? 'MOLE' : 'PROSPECTOR');
                 addShip(t, data.operators, data.customName);
             }
-        } catch (err) { alert("❌ Invalid JSON file format!"); }
+        } catch (err) { 
+            alert("❌ Invalid JSON file format!"); 
+        }
         event.target.value = ""; 
     };
     reader.readAsText(file);
