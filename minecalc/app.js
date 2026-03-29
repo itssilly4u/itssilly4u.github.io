@@ -511,26 +511,56 @@ function calculate() {
         if (!l || l.name === "None") return;
 
         let pMod = 0, eMod = 0, opInert = [l.inert || 0];
+        
+        // NEW: Variables to pool the module stats together for this specific seat (Additive)
+        let seatWin = 0, seatChg = 0, seatOver = 0, seatShat = 0, seatClust = 0;
+
         [1,2,3].forEach(m => {
             let mod = modules[document.getElementById(`cs-mod${m}-${opId}`).dataset.value];
             if (!mod || mod.name === "None") return;
-            pMod += mod.power; eMod += mod.extraction; opInert.push(mod.inert || 0);
+            
+            pMod += mod.power; 
+            eMod += mod.extraction; 
+            opInert.push(mod.inert || 0);
+            
+            // Resistance & Instability are pure multiplicative, so they go straight to the array
             if (mod.resistance) fleetRes.push(mod.resistance); 
             if (mod.instability) fleetInst.push(mod.instability);
-            if (mod.optimalWin) win.push(mod.optimalWin); 
-            if (mod.optCharge) chg.push(mod.optCharge);
-            if (mod.overcharge) over.push(mod.overcharge); 
-            if (mod.shatter) shat.push(mod.shatter);
+            
+            // HYBRID STATS: We add them to the seat pool first instead of pushing to the array
+            if (mod.optimalWin) seatWin += mod.optimalWin; 
+            if (mod.optCharge) seatChg += mod.optCharge;
+            if (mod.overcharge) seatOver += mod.overcharge; 
+            if (mod.shatter) seatShat += mod.shatter;
+            if (mod.cluster) seatClust += mod.cluster;
         });
 
+        // Power & Extraction (Additive to laser)
         tMax += l.powerMax * (1 + pMod/100); 
         tMin += l.powerMin * (1 + pMod/100);
+        
+        // Resistance & Instability (Pure Multiplicative)
         if (l.resistance) fleetRes.push(l.resistance); 
         if (l.instability) fleetInst.push(l.instability);
-        if (l.optimalWin) win.push(l.optimalWin); 
-        if (l.optCharge) chg.push(l.optCharge);
-        if (l.overcharge) over.push(l.overcharge); 
-        if (l.shatter) shat.push(l.shatter);
+
+        // HYBRID MATH CALCULATIONS 
+        // Formula: (1 + LaserBonus) * (1 + SumOfModules) - 1
+        
+        let finalSeatWin = ((1 + (l.optimalWin || 0)/100) * (1 + seatWin/100)) - 1;
+        if (finalSeatWin !== 0) win.push(finalSeatWin * 100);
+        
+        let finalSeatChg = ((1 + (l.optCharge || 0)/100) * (1 + seatChg/100)) - 1;
+        if (finalSeatChg !== 0) chg.push(finalSeatChg * 100);
+        
+        let finalSeatOver = ((1 + (l.overcharge || 0)/100) * (1 + seatOver/100)) - 1;
+        if (finalSeatOver !== 0) over.push(finalSeatOver * 100);
+        
+        let finalSeatShat = ((1 + (l.shatter || 0)/100) * (1 + seatShat/100)) - 1;
+        if (finalSeatShat !== 0) shat.push(finalSeatShat * 100);
+
+        let finalSeatClust = ((1 + (l.cluster || 0)/100) * (1 + seatClust/100)) - 1;
+        if (finalSeatClust !== 0) clust.push(finalSeatClust * 100);
+        // ------------------------------------
 
         document.getElementById(`op-ext-${opId}`).innerText = (l.extraction * (1 + eMod/100)).toFixed(1);
         updateStat(`op-inert-${opId}`, calcMulti(opInert), true);
@@ -543,6 +573,7 @@ function calculate() {
         if (g && g.name !== "None") {
             if (g.resistance) gadgetRes.push(g.resistance); 
             if (g.instability) gadgetInst.push(g.instability);
+            // Gadgets apply globally to the rock, so they go straight into the final arrays
             if (g.optimalWin) win.push(g.optimalWin); 
             if (g.optCharge) chg.push(g.optCharge);
             if (g.overcharge) over.push(g.overcharge); 
@@ -557,16 +588,14 @@ function calculate() {
     document.getElementById('res-max-power').innerText = Math.round(tMax).toLocaleString();
     document.getElementById('res-min-power').innerText = Math.round(tMin).toLocaleString();
     
-    // --- MULTIPLICATIVE STATS ---
+    // Final output generation uses your original calcMulti!
     updateStat('res-resistance', totalResMod, true);
     updateStat('res-instability', totalInstMod, true);
-    
-    // --- ADDITIVE STATS ---
-    updateStat('res-opt-win', win.reduce((a, b) => a + b, 0), false);
-    updateStat('res-opt-charge', chg.reduce((a, b) => a + b, 0), false);
-    updateStat('res-overcharge', over.reduce((a, b) => a + b, 0), true);
-    updateStat('res-shatter', shat.reduce((a, b) => a + b, 0), true);
-    updateStat('res-cluster', clust.reduce((a, b) => a + b, 0), false);
+    updateStat('res-opt-win', calcMulti(win), false);
+    updateStat('res-opt-charge', calcMulti(chg), false);
+    updateStat('res-overcharge', calcMulti(over), true);
+    updateStat('res-shatter', calcMulti(shat), true);
+    updateStat('res-cluster', calcMulti(clust), false);
 
     const inputMass = safeFloat(document.getElementById('rock-mass').value);
     const inputRes = safeFloat(document.getElementById('rock-res').value);
