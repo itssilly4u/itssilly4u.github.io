@@ -556,13 +556,17 @@ function calculate() {
 
     document.getElementById('res-max-power').innerText = Math.round(tMax).toLocaleString();
     document.getElementById('res-min-power').innerText = Math.round(tMin).toLocaleString();
+    
+    // --- MULTIPLICATIVE STATS ---
     updateStat('res-resistance', totalResMod, true);
     updateStat('res-instability', totalInstMod, true);
-    updateStat('res-opt-win', calcMulti(win), false);
-    updateStat('res-opt-charge', calcMulti(chg), false);
-    updateStat('res-overcharge', calcMulti(over), true);
-    updateStat('res-shatter', calcMulti(shat), true);
-    updateStat('res-cluster', calcMulti(clust), false);
+    
+    // --- ADDITIVE STATS ---
+    updateStat('res-opt-win', win.reduce((a, b) => a + b, 0), false);
+    updateStat('res-opt-charge', chg.reduce((a, b) => a + b, 0), false);
+    updateStat('res-overcharge', over.reduce((a, b) => a + b, 0), true);
+    updateStat('res-shatter', shat.reduce((a, b) => a + b, 0), true);
+    updateStat('res-cluster', clust.reduce((a, b) => a + b, 0), false);
 
     const inputMass = safeFloat(document.getElementById('rock-mass').value);
     const inputRes = safeFloat(document.getElementById('rock-res').value);
