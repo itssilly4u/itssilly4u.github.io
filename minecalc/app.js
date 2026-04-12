@@ -665,67 +665,60 @@ function calculate() {
     }
 }
 
-function findOres() {
-    const inputSignatureStr = document.getElementById('signatureInput').value;
-    const signature = parseInt(inputSignatureStr);
-    const tbody = document.getElementById('ore-table-body');
-    const rows = tbody.querySelectorAll('tr');
+// --- NEW HELPER FUNCTIONS FOR MULTIPLES ---
 
-    // 1. Reset all rows and remove old badges
-    rows.forEach(row => {
-        row.classList.remove('highlight-match');
-        const badge = row.querySelector('.cluster-badge');
-        if (badge) badge.remove();
-    });
-
-    // 2. If input is empty or invalid, just stop here (leaves table reset)
-    if (isNaN(signature) || signature <= 0) return;
-
-    let matchFound = false;
-
-    // 3. Check each row for a mathematical match
-    rows.forEach(row => {
-        const baseSig = parseInt(row.getAttribute('data-signature'));
-        
-        if (baseSig && signature % baseSig === 0) {
-            const count = signature / baseSig;
-            
-            // Highlight the row
-            row.classList.add('highlight-match');
-            
-            // Inject the "3x Cluster" badge next to the name
-            const nameCell = row.querySelector('.ore-name-cell');
-            nameCell.innerHTML += `<span class="cluster-badge">${count}x Cluster</span>`;
-            
-            matchFound = true;
-        }
-    });
-
-    // 4. Optional: Smoothly scroll to the match if one is found
-    if (matchFound) {
-        const firstMatch = tbody.querySelector('.highlight-match');
-        if (firstMatch) {
-            firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }
+// 1. Determine Max Cluster Size Based on Rarity
+function getMaxMulti(rarity) {
+    if(rarity === 'Legendary') return 2;
+    if(rarity === 'Epic') return 3;
+    if(rarity === 'Rare') return 4;
+    if(rarity === 'Uncommon') return 5;
+    if(rarity === 'Common') return 6;
+    return 1;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const sigInput = document.getElementById('signatureInput');
-    if (sigInput) {
-        sigInput.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault(); 
-                findOres();
-            }
-        });
+// 2. Re-use your existing tooltip for the Hover Effect
+window.showSignatureTip = (baseSig, rarity) => {
+    const max = getMaxMulti(rarity);
+    let html = `<div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">`;
+    for(let i=1; i<=max; i++) {
+        html += `<span style="background:var(--bg-color); border:1px solid var(--border); padding:4px 8px; border-radius:4px; font-size:0.9em; color:var(--text-main);">${i}x: <span style="color:var(--accent); font-weight:bold;">${baseSig * i}</span></span>`;
     }
-});
+    html += `</div>`;
+    tooltipEl.innerHTML = `<h4 style="margin-bottom: 5px; border-bottom: none; padding-bottom: 0;">${rarity} Multiples</h4><div style="font-size:0.8em; color:var(--text-muted); border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 5px;">Max cluster size: ${max}x</div>${html}`;
+    tooltipEl.style.display = 'block';
+}
 
-window.onclick = (e) => { if (!e.target.closest('.custom-select')) document.querySelectorAll('.custom-select').forEach(el => { el.classList.remove('open'); el.querySelector('.cs-options').style.display='none'; }); };
-window.onload = loadData;
+// 3. Click Effect: Opens a row directly underneath
+window.toggleSignatureRow = (cell, baseSig, rarity) => {
+    const tr = cell.closest('tr');
+    const nextTr = tr.nextElementSibling;
+    
+    // If it's already open, close it
+    if (nextTr && nextTr.classList.contains('sig-details-row')) {
+        nextTr.remove();
+        return;
+    }
+    
+    const max = getMaxMulti(rarity);
+    let html = `<div style="display:flex; gap:15px; padding:5px 10px; border-left:3px solid var(--accent); flex-wrap:wrap; align-items: center;">`;
+    html += `<span style="color:var(--text-muted); font-size:0.8em; text-transform:uppercase; margin-right:10px;">${rarity} Limits:</span>`;
+    for(let i=1; i<=max; i++) {
+        html += `<div style="background:var(--bg-color); border:1px solid var(--border); padding:6px 12px; border-radius:6px; text-align:center;">
+                    <div style="color:var(--text-muted); font-size:0.75em; text-transform:uppercase;">${i}x Cluster</div>
+                    <div style="color:var(--accent); font-weight:bold; font-size:1.1em;">${baseSig * i}</div>
+                 </div>`;
+    }
+    html += `</div>`;
 
-// --- ORE DATABASE GENERATOR ---
+    const detailRow = document.createElement('tr');
+    detailRow.className = 'sig-details-row';
+    detailRow.innerHTML = `<td colspan="7" style="padding: 15px; border-bottom: 1px solid var(--border);">${html}</td>`;
+    tr.after(detailRow);
+}
+
+
+// --- ORE DATABASE GENERATOR (UPDATED) ---
 function generateOreTable() {
     const tbody = document.getElementById('ore-table-body');
     if (!tbody || typeof ores === 'undefined') return;
@@ -752,12 +745,18 @@ function generateOreTable() {
         let subOres = ore.secondary || "-";
         if (ore.tertiary) subOres += `, ${ore.tertiary}`;
 
-        // ADDED: data-signature attribute to the row
+        // Added data-rarity to the TR, and hover/click logic to the Signature TD
         html += `
-            <tr data-signature="${ore.signature}">
+            <tr data-signature="${ore.signature}" data-rarity="${ore.rarity}">
                 <td class="rarity-${ore.rarity.toLowerCase()}">${ore.rarity}</td>
                 <td class="ore-name-cell" style="font-weight: bold;">${ore.name} ${ore.locationNote ? `<span style="font-size:0.7em; color:var(--accent); display:block;">(${ore.locationNote})</span>` : ''}</td>
-                <td style="color: var(--accent); font-weight: bold; font-size: 1.1em;">${ore.signature}</td>
+                <td class="sig-clickable" style="color: var(--accent); font-weight: bold; font-size: 1.1em;" 
+                    onmouseenter="showSignatureTip(${ore.signature}, '${ore.rarity}')" 
+                    onmouseleave="hidePreview()" 
+                    onclick="toggleSignatureRow(this, ${ore.signature}, '${ore.rarity}')" 
+                    title="Click or hover to expand clusters">
+                    ${ore.signature}
+                </td>
                 <td>${getInstRating(ore.instability)} <span style="color: var(--text-muted); font-size: 0.8em;">(${ore.instability})</span></td>
                 <td>${getResRating(ore.resistance)} <span style="color: var(--text-muted); font-size: 0.8em;">(${ore.resistance})</span></td>
                 <td>${getDensRating(ore.density)} <span style="color: var(--text-muted); font-size: 0.8em;">(${ore.density})</span></td>
@@ -767,6 +766,53 @@ function generateOreTable() {
     });
 
     tbody.innerHTML = html;
+}
+
+// --- ROCK READER CALCULATOR (UPDATED) ---
+function findOres() {
+    const inputSignatureStr = document.getElementById('signatureInput').value;
+    const signature = parseInt(inputSignatureStr);
+    const tbody = document.getElementById('ore-table-body');
+    // Only target main rows, ignore the expanded detail rows so it doesn't break
+    const rows = tbody.querySelectorAll('tr[data-signature]');
+
+    // Reset table
+    rows.forEach(row => {
+        row.classList.remove('highlight-match');
+        const badge = row.querySelector('.cluster-badge');
+        if (badge) badge.remove();
+    });
+
+    if (isNaN(signature) || signature <= 0) return;
+
+    let matchFound = false;
+
+    // Check matches
+    rows.forEach(row => {
+        const baseSig = parseInt(row.getAttribute('data-signature'));
+        const rarity = row.getAttribute('data-rarity');
+        const maxMulti = getMaxMulti(rarity);
+
+        if (baseSig && signature % baseSig === 0) {
+            const count = signature / baseSig;
+            
+            // Check if the match is within the valid game limits (e.g. Legendary <= 2)
+            if (count <= maxMulti) {
+                row.classList.add('highlight-match');
+                const nameCell = row.querySelector('.ore-name-cell');
+                nameCell.innerHTML += `<span class="cluster-badge">${count}x Cluster</span>`;
+                matchFound = true;
+            }
+        }
+    });
+
+    // Optional: Smooth scroll to first match
+    if (matchFound) {
+        const firstMatch = tbody.querySelector('.highlight-match');
+        if (firstMatch) {
+            firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
 }
 
 // Ensure the table builds as soon as the page is ready
