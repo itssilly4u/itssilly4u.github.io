@@ -667,37 +667,46 @@ function calculate() {
 
 function findOres() {
     const inputSignatureStr = document.getElementById('signatureInput').value;
-    const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = "";
-
     const signature = parseInt(inputSignatureStr);
-    if (isNaN(signature) || signature <= 0) {
-        resultsDiv.innerHTML = "<div style='color:#ff6b6b; text-align:center; padding: 10px;'>❌ Please enter a valid number.</div>";
-        return;
-    }
+    const tbody = document.getElementById('ore-table-body');
+    const rows = tbody.querySelectorAll('tr');
 
-    let matches = [];
-    for (const ore of ores) {
-        if (signature % ore.signature === 0) {
-            const count = signature / ore.signature;
-            matches.push({ name: ore.name, count: count });
+    // 1. Reset all rows and remove old badges
+    rows.forEach(row => {
+        row.classList.remove('highlight-match');
+        const badge = row.querySelector('.cluster-badge');
+        if (badge) badge.remove();
+    });
+
+    // 2. If input is empty or invalid, just stop here (leaves table reset)
+    if (isNaN(signature) || signature <= 0) return;
+
+    let matchFound = false;
+
+    // 3. Check each row for a mathematical match
+    rows.forEach(row => {
+        const baseSig = parseInt(row.getAttribute('data-signature'));
+        
+        if (baseSig && signature % baseSig === 0) {
+            const count = signature / baseSig;
+            
+            // Highlight the row
+            row.classList.add('highlight-match');
+            
+            // Inject the "3x Cluster" badge next to the name
+            const nameCell = row.querySelector('.ore-name-cell');
+            nameCell.innerHTML += `<span class="cluster-badge">${count}x Cluster</span>`;
+            
+            matchFound = true;
         }
-    }
+    });
 
-    if (matches.length > 0) {
-        resultsDiv.innerHTML = "<div class='stat-title' style='margin-bottom: 12px;'>Possible Matches:</div>" +
-            matches.map(m => `
-                <div class="match-item">
-                    <span class="match-name">${m.name}</span>
-                    <span class="match-count">${m.count}x node cluster</span>
-                </div>
-            `).join('');
-    } else {
-        resultsDiv.innerHTML = `
-            <div style='text-align:center; padding: 20px;'>
-                <div class='stat-title'>No perfect matches found.</div>
-                <div style='color: #a1a6b0; font-size:0.9rem; margin-top: 5px;'>The initial signature may not be perfectly precise, or it's a mixed cluster.</div>
-            </div>`;
+    // 4. Optional: Smoothly scroll to the match if one is found
+    if (matchFound) {
+        const firstMatch = tbody.querySelector('.highlight-match');
+        if (firstMatch) {
+            firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     }
 }
 
@@ -721,7 +730,6 @@ function generateOreTable() {
     const tbody = document.getElementById('ore-table-body');
     if (!tbody || typeof ores === 'undefined') return;
 
-    // Helper to wrap rating words in color classes
     const colorize = (word) => {
         let cssClass = '';
         if (word === 'Extreme') cssClass = 'rating-extreme';
@@ -732,7 +740,6 @@ function generateOreTable() {
         return `<span class="${cssClass}">${word}</span>`;
     };
 
-    // Helper functions to map raw numbers to text ratings (and apply colors)
     const getInstRating = (val) => colorize(val >= 1000 ? 'Extreme' : val >= 600 ? 'High' : val > 50 ? 'Medium' : 'Low');
     const getResRating = (val) => colorize(val >= 95 ? 'Extreme' : val >= 60 ? 'High' : val >= 30 ? 'Medium' : val >= 10 ? 'Low' : 'Very Low');
     const getDensRating = (val) => val >= 2500 ? 'Very Large' : val >= 1200 ? 'Large' : val >= 800 ? 'Medium' : val >= 300 ? 'Small' : 'Very Small';
@@ -740,17 +747,16 @@ function generateOreTable() {
     let html = "";
 
     ores.forEach(ore => {
-        // Skip the non-ore signatures like "Debris" for the database table
         if (!ore.rarity) return;
 
-        // Combine secondary and tertiary into one string
         let subOres = ore.secondary || "-";
         if (ore.tertiary) subOres += `, ${ore.tertiary}`;
 
+        // ADDED: data-signature attribute to the row
         html += `
-            <tr>
+            <tr data-signature="${ore.signature}">
                 <td class="rarity-${ore.rarity.toLowerCase()}">${ore.rarity}</td>
-                <td style="font-weight: bold;">${ore.name} ${ore.locationNote ? `<span style="font-size:0.7em; color:var(--accent); display:block;">(${ore.locationNote})</span>` : ''}</td>
+                <td class="ore-name-cell" style="font-weight: bold;">${ore.name} ${ore.locationNote ? `<span style="font-size:0.7em; color:var(--accent); display:block;">(${ore.locationNote})</span>` : ''}</td>
                 <td style="color: var(--accent); font-weight: bold; font-size: 1.1em;">${ore.signature}</td>
                 <td>${getInstRating(ore.instability)} <span style="color: var(--text-muted); font-size: 0.8em;">(${ore.instability})</span></td>
                 <td>${getResRating(ore.resistance)} <span style="color: var(--text-muted); font-size: 0.8em;">(${ore.resistance})</span></td>

@@ -65,48 +65,7 @@
     </div>
 
     <div class="accordion-header" onclick="toggleAccordion(this)">
-        <h2>Rock Cracker Analysis</h2>
-        <span class="accordion-icon">▼</span>
-    </div>
-    <div class="accordion-content">
-        <div class="disclaimer">Disclaimer: This is a rough calculation. In-game values and situations may differ and are subject to change.</div>
-        <div class="cracker-grid">
-            <div class="cracker-input-group">
-                <div class="stat-title">Rock Mass</div>
-                <input type="number" id="rock-mass" class="cracker-input" placeholder="0" oninput="calculate()" value="5000">
-            </div>
-            <div class="cracker-input-group">
-                <div class="stat-title">Rock Resistance</div>
-                <input type="number" id="rock-res" class="cracker-input" placeholder="0" oninput="calculate()" value="40">
-            </div>
-            <div class="cracker-input-group">
-                <div class="stat-title">Rock Instability</div>
-                <input type="number" id="rock-inst" class="cracker-input" placeholder="0" oninput="calculate()" value="150">
-            </div>
-            <div class="cracker-input-group" style="justify-content: center; align-items: flex-start;">
-                <div class="stat-title">Gadgets attached during scan?</div>
-                <label class="switch" style="margin-top: 10px;">
-                    <input type="checkbox" id="gadgets-scanned" onchange="calculate()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-        </div>
-        <div class="cracker-grid" style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px;">
-            <div>
-                <div class="stat-title">Rock Breakability</div>
-                <div id="crack-power-status" class="status-badge">Awaiting Input</div>
-                <div id="crack-power-required" style="margin-top: 10px; font-size: 0.8em; font-weight: bold; color: var(--text-muted); text-align: center; text-transform: uppercase;">Required Power: 0</div>
-            </div>
-            <div>
-                <div class="stat-title">Rock Instability</div>
-                <div id="crack-inst-status" class="status-badge">Awaiting Input</div>
-                <div id="crack-inst-final" style="margin-top: 10px; font-size: 0.8em; font-weight: bold; color: var(--text-muted); text-align: center; text-transform: uppercase;">Final Instability: 0</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="accordion-header" onclick="toggleAccordion(this)">
-        <h2>Rock Reader Tool</h2>
+        <h2>Rock Reader & Database</h2>
         <span class="accordion-icon">▼</span>
     </div>
     <div class="accordion-content">
@@ -114,23 +73,16 @@
             <em>Hey! We have this tool on its own if you prefer it separate: <a href="https://itssilly.xyz/rockreader/" target="_blank" style="color: var(--accent); font-weight: bold; text-decoration: none;">Launch Standalone Rock Reader ↗</a></em>
         </div>
 
-        <div class="cracker-grid">
+        <div class="cracker-grid" style="margin-bottom: 20px;">
             <div class="cracker-input-group" style="flex: 2;">
                 <div class="stat-title">Remote Cluster Signature</div>
-                <input type="number" id="signatureInput" class="cracker-input" placeholder="Example: 9510">
+                <input type="number" id="signatureInput" class="cracker-input" placeholder="Example: 11610" oninput="findOres()">
             </div>
             <div class="cracker-input-group" style="flex: 1; justify-content: flex-end;">
                 <button class="action-button" onclick="findOres()">Check Matches</button>
             </div>
         </div>
 
-        <div id="results" class="results-container"></div>
-    </div>
-    <div class="accordion-header" onclick="toggleAccordion(this)">
-        <h2>Ore Database</h2>
-        <span class="accordion-icon">▼</span>
-    </div>
-    <div class="accordion-content">
         <div class="disclaimer">Note: Instability, Resistance, and Density ratings are calculated dynamically based on raw values.</div>
         <div class="table-responsive">
             <table class="minecalc-table">

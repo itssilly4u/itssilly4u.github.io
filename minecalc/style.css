@@ -413,3 +413,21 @@ footer { background-color: var(--panel-bg); border-top: 2px solid var(--border);
 .rating-medium { color: #fbbf24; font-weight: bold; } /* Yellow */
 .rating-low { color: #4ade80; font-weight: bold; } /* Faded Green */
 .rating-very-low { color: #22c55e; font-weight: bold; } /* Brighter Green */
+
+/* --- Rock Reader Table Highlights --- */
+.minecalc-table tr.highlight-match {
+    background-color: rgba(34, 197, 94, 0.15); /* Soft green glow */
+    border: 2px solid var(--crackable);
+}
+
+.cluster-badge {
+    background-color: var(--crackable);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-left: 10px;
+    vertical-align: middle;
+}
