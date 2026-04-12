@@ -126,6 +126,30 @@
 
         <div id="results" class="results-container"></div>
     </div>
+    <div class="accordion-header" onclick="toggleAccordion(this)">
+        <h2>Ore Database</h2>
+        <span class="accordion-icon">▼</span>
+    </div>
+    <div class="accordion-content">
+        <div class="disclaimer">Note: Instability, Resistance, and Density ratings are calculated dynamically based on raw values.</div>
+        <div class="table-responsive">
+            <table class="minecalc-table">
+                <thead>
+                    <tr>
+                        <th>Rarity</th>
+                        <th>Ore Name</th>
+                        <th>Signature</th>
+                        <th>Instability</th>
+                        <th>Resistance</th>
+                        <th>Density</th>
+                        <th>Secondary / Tertiary</th>
+                    </tr>
+                </thead>
+                <tbody id="ore-table-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <footer>

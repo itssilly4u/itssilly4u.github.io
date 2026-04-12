@@ -715,3 +715,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.onclick = (e) => { if (!e.target.closest('.custom-select')) document.querySelectorAll('.custom-select').forEach(el => { el.classList.remove('open'); el.querySelector('.cs-options').style.display='none'; }); };
 window.onload = loadData;
+
+// --- ORE DATABASE GENERATOR ---
+function generateOreTable() {
+    const tbody = document.getElementById('ore-table-body');
+    if (!tbody || typeof ores === 'undefined') return;
+
+    // Helper functions to map raw numbers to text ratings
+    const getInstRating = (val) => val >= 1000 ? 'Extreme' : val >= 600 ? 'High' : val > 50 ? 'Medium' : 'Low';
+    const getResRating = (val) => val >= 95 ? 'Extreme' : val >= 60 ? 'High' : val >= 30 ? 'Medium' : val >= 10 ? 'Low' : 'Very Low';
+    const getDensRating = (val) => val >= 2500 ? 'Very Large' : val >= 1200 ? 'Large' : val >= 800 ? 'Medium' : val >= 300 ? 'Small' : 'Very Small';
+
+    let html = "";
+
+    ores.forEach(ore => {
+        // Skip the non-ore signatures like "Debris" for the database table
+        if (!ore.rarity) return;
+
+        // Combine secondary and tertiary into one string
+        let subOres = ore.secondary || "-";
+        if (ore.tertiary) subOres += `, ${ore.tertiary}`;
+
+        html += `
+            <tr>
+                <td class="rarity-${ore.rarity.toLowerCase()}">${ore.rarity}</td>
+                <td style="font-weight: bold;">${ore.name} ${ore.locationNote ? `<span style="font-size:0.7em; color:var(--accent); display:block;">(${ore.locationNote})</span>` : ''}</td>
+                <td style="color: var(--accent); font-weight: bold; font-size: 1.1em;">${ore.signature}</td>
+                <td>${getInstRating(ore.instability)} <span style="color: var(--text-muted); font-size: 0.8em;">(${ore.instability})</span></td>
+                <td>${getResRating(ore.resistance)} <span style="color: var(--text-muted); font-size: 0.8em;">(${ore.resistance})</span></td>
+                <td>${getDensRating(ore.density)} <span style="color: var(--text-muted); font-size: 0.8em;">(${ore.density})</span></td>
+                <td style="font-size: 0.85em; color: var(--text-muted);">${subOres}</td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+// Ensure the table builds as soon as the page is ready
+document.addEventListener('DOMContentLoaded', function() {
+    generateOreTable();
+});

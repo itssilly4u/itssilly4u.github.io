@@ -363,3 +363,46 @@ footer { background-color: var(--panel-bg); border-top: 2px solid var(--border);
 .ship-container[data-type="GOLEM"] .setups-grid {
     grid-template-columns: 1fr;
 }
+
+/* --- Ore Database Table Styles --- */
+.table-responsive {
+    overflow-x: auto;
+    margin-top: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.minecalc-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9em;
+    min-width: 800px; /* Forces scroll on small screens instead of squishing */
+}
+
+.minecalc-table th {
+    background-color: var(--bg-color);
+    color: var(--text-muted);
+    padding: 12px 15px;
+    border-bottom: 2px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.8em;
+}
+
+.minecalc-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-main);
+}
+
+.minecalc-table tr:hover {
+    background-color: rgba(255, 204, 0, 0.05); /* Slight accent color hover */
+}
+
+/* Rarity Colors */
+.rarity-legendary { color: #f59e0b; font-weight: bold; text-transform: uppercase; }
+.rarity-epic { color: #a855f7; font-weight: bold; text-transform: uppercase; }
+.rarity-rare { color: #3b82f6; font-weight: bold; text-transform: uppercase; }
+.rarity-uncommon { color: #22c55e; font-weight: bold; text-transform: uppercase; }
+.rarity-common { color: var(--text-muted); text-transform: uppercase; }
