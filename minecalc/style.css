@@ -401,8 +401,15 @@ footer { background-color: var(--panel-bg); border-top: 2px solid var(--border);
 }
 
 /* Rarity Colors */
-.rarity-legendary { color: #f59e0b; font-weight: bold; text-transform: uppercase; }
-.rarity-epic { color: #a855f7; font-weight: bold; text-transform: uppercase; }
-.rarity-rare { color: #3b82f6; font-weight: bold; text-transform: uppercase; }
-.rarity-uncommon { color: #22c55e; font-weight: bold; text-transform: uppercase; }
-.rarity-common { color: var(--text-muted); text-transform: uppercase; }
+.rarity-legendary { color: #ef4444; font-weight: bold; text-transform: uppercase; } /* Red */
+.rarity-epic { color: #a855f7; font-weight: bold; text-transform: uppercase; } /* Purple */
+.rarity-rare { color: #3b82f6; font-weight: bold; text-transform: uppercase; } /* Blue */
+.rarity-uncommon { color: #22c55e; font-weight: bold; text-transform: uppercase; } /* Green */
+.rarity-common { color: #9ca3af; font-weight: bold; text-transform: uppercase; } /* Grey */
+
+/* Rating Colors */
+.rating-extreme { color: #ef4444; font-weight: bold; } /* Red */
+.rating-high { color: #f87171; font-weight: bold; } /* Faded Red */
+.rating-medium { color: #fbbf24; font-weight: bold; } /* Yellow */
+.rating-low { color: #4ade80; font-weight: bold; } /* Faded Green */
+.rating-very-low { color: #22c55e; font-weight: bold; } /* Brighter Green */
