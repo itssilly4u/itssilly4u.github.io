@@ -1,10 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>MineCalc has moved!</title>
-    <meta http-equiv="refresh" content="0; url=https://minecalc.itssilly.xyz">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MineCalc is moving...</title>
+    
+    <meta http-equiv="refresh" content="1; url=https://minecalc.itssilly.xyz">
+    
+    <style>
+        /* MineCalc Core Colors */
+        :root {
+            --bg-color: #1a1c22;
+            --panel-bg: #252830;
+            --text-main: #f0f0f0;
+            --text-muted: #a0a0a0;
+            --accent: #ffcc00; 
+            --border: #3f4a5a;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .redirect-card {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 40px;
+            max-width: 450px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        h1 {
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 25px;
+            font-size: 1.1em;
+        }
+
+        .new-url {
+            color: var(--text-main);
+            font-weight: bold;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+
+        .btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 204, 0, 0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            margin: 0 auto 20px auto;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(-10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+    </style>
 </head>
 <body>
-    <p>MineCalc has moved to a new home! If you are not redirected automatically, <a href="https://minecalc.itssilly.xyz">click here</a>.</p>
+
+    <div class="redirect-card">
+        <div class="spinner"></div>
+        <h1>Establishing Link...</h1>
+        <p>MineCalc has relocated to a dedicated server.<br> Rerouting you to <span class="new-url">minecalc.itssilly.xyz</span></p>
+        <a href="https://minecalc.itssilly.xyz" class="btn">Manual Override</a>
+    </div>
+
 </body>
 </html>
