@@ -6,7 +6,7 @@ Welcome to the repository for [itssilly.xyz](https://itssilly.xyz)! This repo ac
 
 ## ⛏️ Featured Project: MineCalc (Advanced Fleet Builder)
 
-**Live Link:** [itssilly.xyz/minecalc](https://itssilly.xyz/minecalc)
+**Live Link:** [itssilly.xyz/minecalc](https://minecalc.itssilly.xyz/)
 
 MineCalc has evolved from a simple loadout calculator into a comprehensive, dynamic **Fleet Builder**. Whether you are flying solo in a Prospector or coordinating a massive multi-crew operation, this tool lets you mix, match, and calculate your exact fleet output.
 
