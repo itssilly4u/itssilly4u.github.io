@@ -401,11 +401,11 @@ footer { background-color: var(--panel-bg); border-top: 2px solid var(--border);
 }
 
 /* Rarity Colors */
-.rarity-legendary { color: #ef4444; font-weight: bold; text-transform: uppercase; } /* Red */
-.rarity-epic { color: #a855f7; font-weight: bold; text-transform: uppercase; } /* Purple */
-.rarity-rare { color: #3b82f6; font-weight: bold; text-transform: uppercase; } /* Blue */
-.rarity-uncommon { color: #22c55e; font-weight: bold; text-transform: uppercase; } /* Green */
-.rarity-common { color: #9ca3af; font-weight: bold; text-transform: uppercase; } /* Grey */
+.minecalc-table td.rarity-legendary { color: #ef4444; font-weight: bold; text-transform: uppercase; } /* Red */
+.minecalc-table td.rarity-epic { color: #a855f7; font-weight: bold; text-transform: uppercase; } /* Purple */
+.minecalc-table td.rarity-rare { color: #3b82f6; font-weight: bold; text-transform: uppercase; } /* Blue */
+.minecalc-table td.rarity-uncommon { color: #22c55e; font-weight: bold; text-transform: uppercase; } /* Green */
+.minecalc-table td.rarity-common { color: #9ca3af; font-weight: bold; text-transform: uppercase; } /* Grey */
 
 /* Rating Colors */
 .rating-extreme { color: #ef4444; font-weight: bold; } /* Red */
