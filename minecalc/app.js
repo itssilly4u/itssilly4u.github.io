@@ -107,22 +107,17 @@ async function loadData() {
     } catch (e) { console.error(e); }
 }
 
-// --- FLEET BUILDER ENGINE ---
-
 function initUI() {
     laserOptionsS1 = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
     laserOptionsS2 = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
     laserOptionsGolem = `<div class="cs-option" data-val="0" onclick="selectCSOption(event, this, 'laser')">None</div>`;
     
-    // Size 2 Lasers (MOLE)
     let f2 = lasers.map((l, i) => ({l, i})).filter(o => o.l.size === 2 && o.l.name !== "None");
     if(f2.length) laserOptionsS2 += `<div class="cs-optgroup">Size 2 Lasers</div>` + f2.map(o => `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${o.l.name}</div>`).join('');
 
-    // Size 1 Lasers (Prospector) - Explicitly excludes the Pitman
     let f1 = lasers.map((l, i) => ({l, i})).filter(o => o.l.size === 1 && o.l.name !== "None" && !o.l.name.toLowerCase().includes("pitman"));
     if(f1.length) laserOptionsS1 += `<div class="cs-optgroup">Size 1 Lasers</div>` + f1.map(o => `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${o.l.name}</div>`).join('');
 
-    // Dedicated Golem Laser (Only grabs the Pitman)
     let fGolem = lasers.map((l, i) => ({l, i})).filter(o => o.l.name.toLowerCase().includes("pitman"));
     if(fGolem.length) laserOptionsGolem += `<div class="cs-optgroup">Drake Golem</div>` + fGolem.map(o => `<div class="cs-option" data-val="${o.i}" onmouseenter="showPreview(${o.i}, 'laser')" onmouseleave="hidePreview()" onclick="selectCSOption(event, this, 'laser')">${o.l.name}</div>`).join('');
 
@@ -210,7 +205,6 @@ function addShip(type, loadConfig = null, customName = null) {
 
     container.appendChild(shipDiv);
 
-    // --- NEW: Auto-Equip Stock Lasers ---
     if (!loadConfig) {
         let defaultLaser = "None";
         if (type === 'MOLE') {
@@ -276,8 +270,6 @@ function saveShipName(shipId) {
     icon.style.display = 'block';
 }
 
-// --- SECURITY & VALIDATION ---
-
 function escapeHTML(str) {
     if (!str) return "";
     return str.toString()
@@ -307,7 +299,6 @@ function handleImport(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // --- SECURITY: FILE SIZE LIMIT ---
     if (file.size > 15360) {
         alert("❌ File is too large. Valid loadouts are very small files.");
         event.target.value = ""; 
@@ -319,7 +310,6 @@ function handleImport(event) {
         try {
             const data = JSON.parse(e.target.result);
             
-            // --- SECURITY: HASH VALIDATION ---
             if (!data._hash) { alert("❌ Invalid File: Missing security signature."); return; }
             const providedHash = data._hash;
             delete data._hash; 
@@ -327,8 +317,6 @@ function handleImport(event) {
                 alert("❌ Corrupted File: The contents have been modified or tampered with."); return;
             }
 
-            // --- SECURITY: FLEET SIZE LIMIT ---
-            // Prevents someone from modifying the JSON to spawn 10,000 ships and freezing the PC.
             if (data.type === 'FLEET' && data.ships) {
                 if (data.ships.length > 20) {
                     alert("❌ Import failed: Fleet exceeds the maximum limit of 20 ships.");
@@ -511,8 +499,6 @@ function calculate() {
         if (!l || l.name === "None") return;
 
         let pMod = 0, eMod = 0, opInert = [l.inert || 0];
-        
-        // NEW: Variables to pool the module stats together for this specific seat (Additive)
         let seatWin = 0, seatChg = 0, seatOver = 0, seatShat = 0, seatClust = 0;
 
         [1,2,3].forEach(m => {
@@ -523,11 +509,9 @@ function calculate() {
             eMod += mod.extraction; 
             opInert.push(mod.inert || 0);
             
-            // Resistance & Instability are pure multiplicative, so they go straight to the array
             if (mod.resistance) fleetRes.push(mod.resistance); 
             if (mod.instability) fleetInst.push(mod.instability);
             
-            // HYBRID STATS: We add them to the seat pool first instead of pushing to the array
             if (mod.optimalWin) seatWin += mod.optimalWin; 
             if (mod.optCharge) seatChg += mod.optCharge;
             if (mod.overcharge) seatOver += mod.overcharge; 
@@ -535,17 +519,12 @@ function calculate() {
             if (mod.cluster) seatClust += mod.cluster;
         });
 
-        // Power & Extraction (Additive to laser)
         tMax += l.powerMax * (1 + pMod/100); 
         tMin += l.powerMin * (1 + pMod/100);
         
-        // Resistance & Instability (Pure Multiplicative)
         if (l.resistance) fleetRes.push(l.resistance); 
         if (l.instability) fleetInst.push(l.instability);
 
-        // HYBRID MATH CALCULATIONS 
-        // Formula: (1 + LaserBonus) * (1 + SumOfModules) - 1
-        
         let finalSeatWin = ((1 + (l.optimalWin || 0)/100) * (1 + seatWin/100)) - 1;
         if (finalSeatWin !== 0) win.push(finalSeatWin * 100);
         
@@ -560,7 +539,6 @@ function calculate() {
 
         let finalSeatClust = ((1 + (l.cluster || 0)/100) * (1 + seatClust/100)) - 1;
         if (finalSeatClust !== 0) clust.push(finalSeatClust * 100);
-        // ------------------------------------
 
         document.getElementById(`op-ext-${opId}`).innerText = (l.extraction * (1 + eMod/100)).toFixed(1);
         updateStat(`op-inert-${opId}`, calcMulti(opInert), true);
@@ -573,7 +551,6 @@ function calculate() {
         if (g && g.name !== "None") {
             if (g.resistance) gadgetRes.push(g.resistance); 
             if (g.instability) gadgetInst.push(g.instability);
-            // Gadgets apply globally to the rock, so they go straight into the final arrays
             if (g.optimalWin) win.push(g.optimalWin); 
             if (g.optCharge) chg.push(g.optCharge);
             if (g.overcharge) over.push(g.overcharge); 
@@ -588,7 +565,6 @@ function calculate() {
     document.getElementById('res-max-power').innerText = Math.round(tMax).toLocaleString();
     document.getElementById('res-min-power').innerText = Math.round(tMin).toLocaleString();
     
-    // Final output generation uses your original calcMulti!
     updateStat('res-resistance', totalResMod, true);
     updateStat('res-instability', totalInstMod, true);
     updateStat('res-opt-win', calcMulti(win), false);
@@ -665,9 +641,9 @@ function calculate() {
     }
 }
 
+
 // --- NEW HELPER FUNCTIONS FOR MULTIPLES ---
 
-// 1. Determine Max Cluster Size Based on Rarity
 function getMaxMulti(rarity) {
     if(rarity === 'Legendary') return 2;
     if(rarity === 'Epic') return 3;
@@ -677,7 +653,6 @@ function getMaxMulti(rarity) {
     return 1;
 }
 
-// 2. Re-use your existing tooltip for the Hover Effect
 window.showSignatureTip = (baseSig, rarity) => {
     const max = getMaxMulti(rarity);
     let html = `<div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">`;
@@ -689,12 +664,10 @@ window.showSignatureTip = (baseSig, rarity) => {
     tooltipEl.style.display = 'block';
 }
 
-// 3. Click Effect: Opens a row directly underneath
 window.toggleSignatureRow = (cell, baseSig, rarity) => {
     const tr = cell.closest('tr');
     const nextTr = tr.nextElementSibling;
     
-    // If it's already open, close it
     if (nextTr && nextTr.classList.contains('sig-details-row')) {
         nextTr.remove();
         return;
@@ -716,7 +689,6 @@ window.toggleSignatureRow = (cell, baseSig, rarity) => {
     detailRow.innerHTML = `<td colspan="7" style="padding: 15px; border-bottom: 1px solid var(--border);">${html}</td>`;
     tr.after(detailRow);
 }
-
 
 // --- ORE DATABASE GENERATOR (UPDATED) ---
 function generateOreTable() {
@@ -745,7 +717,6 @@ function generateOreTable() {
         let subOres = ore.secondary || "-";
         if (ore.tertiary) subOres += `, ${ore.tertiary}`;
 
-        // Added data-rarity to the TR, and hover/click logic to the Signature TD
         html += `
             <tr data-signature="${ore.signature}" data-rarity="${ore.rarity}">
                 <td class="rarity-${ore.rarity.toLowerCase()}">${ore.rarity}</td>
@@ -773,10 +744,10 @@ function findOres() {
     const inputSignatureStr = document.getElementById('signatureInput').value;
     const signature = parseInt(inputSignatureStr);
     const tbody = document.getElementById('ore-table-body');
-    // Only target main rows, ignore the expanded detail rows so it doesn't break
+    if (!tbody) return;
+    
     const rows = tbody.querySelectorAll('tr[data-signature]');
 
-    // Reset table
     rows.forEach(row => {
         row.classList.remove('highlight-match');
         const badge = row.querySelector('.cluster-badge');
@@ -787,7 +758,6 @@ function findOres() {
 
     let matchFound = false;
 
-    // Check matches
     rows.forEach(row => {
         const baseSig = parseInt(row.getAttribute('data-signature'));
         const rarity = row.getAttribute('data-rarity');
@@ -796,7 +766,6 @@ function findOres() {
         if (baseSig && signature % baseSig === 0) {
             const count = signature / baseSig;
             
-            // Check if the match is within the valid game limits (e.g. Legendary <= 2)
             if (count <= maxMulti) {
                 row.classList.add('highlight-match');
                 const nameCell = row.querySelector('.ore-name-cell');
@@ -806,7 +775,6 @@ function findOres() {
         }
     });
 
-    // Optional: Smooth scroll to first match
     if (matchFound) {
         const firstMatch = tbody.querySelector('.highlight-match');
         if (firstMatch) {
@@ -815,7 +783,30 @@ function findOres() {
     }
 }
 
-// Ensure the table builds as soon as the page is ready
+// --- ESSENTIAL EVENT LISTENERS ---
+window.onclick = (e) => { 
+    if (!e.target.closest('.custom-select')) {
+        document.querySelectorAll('.custom-select').forEach(el => { 
+            el.classList.remove('open'); 
+            el.querySelector('.cs-options').style.display='none'; 
+        }); 
+    }
+};
+
+// IMPORTANT: This triggers the initial data fetch and clears the loading screen!
+window.onload = loadData;
+
 document.addEventListener('DOMContentLoaded', function() {
     generateOreTable();
+    
+    // Kept your enter key functionality just in case!
+    const sigInput = document.getElementById('signatureInput');
+    if (sigInput) {
+        sigInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); 
+                findOres();
+            }
+        });
+    }
 });
